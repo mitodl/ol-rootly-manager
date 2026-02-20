@@ -6,10 +6,13 @@ import pprint
 from rootly_sdk import AuthenticatedClient
 from rootly_sdk.api.services import create_service, list_services, update_service
 from rootly_sdk.api.roles import create_role, list_roles, update_role
+from rootly_sdk.api.teams import create_team, list_teams, update_team
 from rootly_sdk.models.new_service import NewService
 from rootly_sdk.models.new_role import NewRole
+from rootly_sdk.models.new_team import NewTeam
 from rootly_sdk.models.update_service import UpdateService
 from rootly_sdk.models.update_role import UpdateRole
+from rootly_sdk.models.update_team import UpdateTeam
 from rootly_sdk.types import UNSET
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "data.py")
@@ -26,6 +29,19 @@ _SERVICE_SIMPLE_WRITABLE = [
     "service_ids", "owner_group_ids", "owner_user_ids", "kubernetes_deployment_name",
     "alerts_email_enabled", "alert_urgency_id", "escalation_policy_id",
     "alert_broadcast_enabled", "incident_broadcast_enabled",
+]
+
+# Writable team fields that are readable from the Team response model.
+# Excludes read-only fields (created_at, updated_at, slug, alerts_email_address)
+# and opsgenie_team_id (create-only, absent from Team response and UpdateTeamDataAttributes).
+_TEAM_SIMPLE_WRITABLE = [
+    "name", "description", "notify_emails", "color", "position",
+    "backstage_id", "external_id", "pagerduty_id", "pagerduty_service_id",
+    "opsgenie_id", "victor_ops_id", "pagertree_id", "cortex_id",
+    "service_now_ci_sys_id", "user_ids", "admin_ids",
+    "alerts_email_enabled", "alert_urgency_id",
+    "alert_broadcast_enabled", "incident_broadcast_enabled",
+    "auto_add_members_when_attached",
 ]
 
 # All writable permission list fields on roles.
@@ -68,6 +84,22 @@ def fetch_all_roles(client: AuthenticatedClient) -> list:
         response = list_roles.sync_detailed(client=client, pagenumber=page, pagesize=100)
         if response.status_code != 200 or response.parsed is None:
             print(f"Error fetching roles (page {page}): {response.status_code}")
+            break
+        items.extend(response.parsed.data)
+        if response.parsed.links.next_ is None:
+            break
+        page += 1
+    return items
+
+
+def fetch_all_teams(client: AuthenticatedClient) -> list:
+    """Fetch every team from Rootly, handling pagination."""
+    items = []
+    page = 1
+    while True:
+        response = list_teams.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        if response.status_code != 200 or response.parsed is None:
+            print(f"Error fetching teams (page {page}): {response.status_code}")
             break
         items.extend(response.parsed.data)
         if response.parsed.links.next_ is None:
@@ -119,6 +151,29 @@ def role_to_writable_dict(item) -> dict:
     return d
 
 
+def team_to_writable_dict(item) -> dict:
+    """Extract only writable attributes from a TeamListDataItem."""
+    attrs = item.attributes
+    d = {}
+
+    for field in _TEAM_SIMPLE_WRITABLE:
+        val = getattr(attrs, field)
+        if val is not UNSET and val is not None:
+            d[field] = val
+
+    # Complex fields whose values are SDK objects that need serialization.
+    if attrs.slack_channels is not UNSET and attrs.slack_channels is not None:
+        d["slack_channels"] = [ch.to_dict() for ch in attrs.slack_channels]
+    if attrs.slack_aliases is not UNSET and attrs.slack_aliases is not None:
+        d["slack_aliases"] = [a.to_dict() for a in attrs.slack_aliases]
+    if attrs.alert_broadcast_channel is not UNSET and attrs.alert_broadcast_channel is not None:
+        d["alert_broadcast_channel"] = attrs.alert_broadcast_channel.to_dict()
+    if attrs.incident_broadcast_channel is not UNSET and attrs.incident_broadcast_channel is not None:
+        d["incident_broadcast_channel"] = attrs.incident_broadcast_channel.to_dict()
+
+    return d
+
+
 # --- Report field specs ---
 #
 # Each entry is a (label, extractor_fn) tuple where:
@@ -153,19 +208,27 @@ ROLE_REPORT_FIELDS = [
     ("Slug", lambda item, ctx: item.attributes.slug),
 ]
 
+TEAM_REPORT_FIELDS = [
+    ("Name", lambda item, ctx: item.attributes.name),
+    ("Slug", lambda item, ctx: item.attributes.slug),
+]
+
 
 def print_report(client: AuthenticatedClient) -> None:
-    """Print a human-readable report of all services and roles."""
+    """Print a human-readable report of all services, roles, and teams."""
     print("Fetching all services...")
     service_items = fetch_all_services(client)
     print("Fetching all roles...")
     role_items = fetch_all_roles(client)
+    print("Fetching all teams...")
+    team_items = fetch_all_teams(client)
 
     id_to_name = {item.id: item.attributes.name for item in service_items}
     context = {"id_to_name": id_to_name}
 
     svc_label_width = max((len(label) for label, _ in SERVICE_REPORT_FIELDS[1:]), default=0)
     role_label_width = max((len(label) for label, _ in ROLE_REPORT_FIELDS[1:]), default=0)
+    team_label_width = max((len(label) for label, _ in TEAM_REPORT_FIELDS[1:]), default=0)
 
     print(f"\nServices ({len(service_items)})")
     print("=" * 60)
@@ -185,11 +248,20 @@ def print_report(client: AuthenticatedClient) -> None:
             print(f"  {label:<{role_label_width}}: {extractor(item, context)}")
         print()
 
+    print(f"\nTeams ({len(team_items)})")
+    print("=" * 60)
+    for item in team_items:
+        heading_label, heading_fn = TEAM_REPORT_FIELDS[0]
+        print(heading_fn(item, context))
+        for label, extractor in TEAM_REPORT_FIELDS[1:]:
+            print(f"  {label:<{team_label_width}}: {extractor(item, context)}")
+        print()
+
 
 # --- Export ---
 
 def export_to_data_file(client: AuthenticatedClient) -> None:
-    """Fetch all services and roles from Rootly and overwrite data.py."""
+    """Fetch all services, roles, and teams from Rootly and overwrite data.py."""
     print("Fetching all services...")
     service_items = fetch_all_services(client)
     services = [service_to_writable_dict(s) for s in service_items]
@@ -200,14 +272,20 @@ def export_to_data_file(client: AuthenticatedClient) -> None:
     roles = [role_to_writable_dict(r) for r in role_items]
     print(f"  Fetched {len(roles)} roles.")
 
+    print("Fetching all teams...")
+    team_items = fetch_all_teams(client)
+    teams = [team_to_writable_dict(t) for t in team_items]
+    print(f"  Fetched {len(teams)} teams.")
+
     services_repr = pprint.pformat(services, indent=4, sort_dicts=False)
     roles_repr = pprint.pformat(roles, indent=4, sort_dicts=False)
-    content = f"SERVICES = {services_repr}\n\nROLES = {roles_repr}\n"
+    teams_repr = pprint.pformat(teams, indent=4, sort_dicts=False)
+    content = f"SERVICES = {services_repr}\n\nROLES = {roles_repr}\n\nTEAMS = {teams_repr}\n"
 
     with open(DATA_FILE, "w") as f:
         f.write(content)
 
-    print(f"\nWrote {len(services)} services and {len(roles)} roles to {DATA_FILE}")
+    print(f"\nWrote {len(services)} services, {len(roles)} roles, and {len(teams)} teams to {DATA_FILE}")
 
 
 # --- Find helpers (used by ensure functions) ---
@@ -231,6 +309,17 @@ def find_existing_role(client: AuthenticatedClient, name: str) -> str | None:
     for r in response.parsed.data:
         if r.attributes.name == name:
             return r.id
+    return None
+
+
+def find_existing_team(client: AuthenticatedClient, name: str) -> str | None:
+    """Find a team by name and return its id, or None if not found."""
+    response = list_teams.sync_detailed(client=client, filtername=name)
+    if response.status_code != 200 or response.parsed is None:
+        return None
+    for t in response.parsed.data:
+        if t.attributes.name == name:
+            return t.id
     return None
 
 
@@ -312,21 +401,60 @@ def ensure_role(client: AuthenticatedClient, role_dict: dict) -> None:
                 print(f"  Error: {response.parsed}")
 
 
+def ensure_team(client: AuthenticatedClient, team_dict: dict) -> None:
+    """Create a team if it doesn't exist, or update it if it does."""
+    name = team_dict["name"]
+    existing_id = find_existing_team(client, name)
+
+    if existing_id is not None:
+        payload = UpdateTeam.from_dict({
+            "data": {
+                "type": "groups",
+                "attributes": team_dict,
+            }
+        })
+        response = update_team.sync_detailed(
+            existing_id, client=client, body=payload
+        )
+        if response.status_code == 200:
+            print(f"Updated team: {name} (id: {existing_id})")
+        else:
+            print(f"Failed to update team '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+    else:
+        payload = NewTeam.from_dict({
+            "data": {
+                "type": "groups",
+                "attributes": team_dict,
+            }
+        })
+        response = create_team.sync_detailed(client=client, body=payload)
+        if response.status_code == 201:
+            result = response.parsed
+            print(f"Created team: {name} (id: {result.data.id})")
+        else:
+            print(f"Failed to create team '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+
+
 # --- Import ---
 
-def load_data_file(path: str) -> tuple[list, list]:
-    """Dynamically load SERVICES and ROLES from a Python file."""
+def load_data_file(path: str) -> tuple[list, list, list]:
+    """Dynamically load SERVICES, ROLES, and TEAMS from a Python file."""
     abs_path = os.path.abspath(path)
     spec = importlib.util.spec_from_file_location("_rootly_data", abs_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.SERVICES, module.ROLES
+    teams = getattr(module, "TEAMS", [])
+    return module.SERVICES, module.ROLES, teams
 
 
 def run_import(client: AuthenticatedClient, path: str) -> None:
     """Load definitions from a file and ensure them in Rootly."""
-    services, roles = load_data_file(path)
-    print(f"Loaded {len(services)} services and {len(roles)} roles from {path}")
+    services, roles, teams = load_data_file(path)
+    print(f"Loaded {len(services)} services, {len(roles)} roles, and {len(teams)} teams from {path}")
 
     print("\nEnsuring services...")
     for service_dict in services:
@@ -335,6 +463,10 @@ def run_import(client: AuthenticatedClient, path: str) -> None:
     print("\nEnsuring roles...")
     for role_dict in roles:
         ensure_role(client, role_dict)
+
+    print("\nEnsuring teams...")
+    for team_dict in teams:
+        ensure_team(client, team_dict)
 
 
 # --- Entry point ---
