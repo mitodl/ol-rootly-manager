@@ -1,4 +1,5 @@
 import argparse
+import importlib.util
 import os
 import pprint
 
@@ -10,8 +11,6 @@ from rootly_sdk.models.new_role import NewRole
 from rootly_sdk.models.update_service import UpdateService
 from rootly_sdk.models.update_role import UpdateRole
 from rootly_sdk.types import UNSET
-
-from data import SERVICES, ROLES
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "data.py")
 
@@ -313,10 +312,44 @@ def ensure_role(client: AuthenticatedClient, role_dict: dict) -> None:
                 print(f"  Error: {response.parsed}")
 
 
+# --- Import ---
+
+def load_data_file(path: str) -> tuple[list, list]:
+    """Dynamically load SERVICES and ROLES from a Python file."""
+    abs_path = os.path.abspath(path)
+    spec = importlib.util.spec_from_file_location("_rootly_data", abs_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.SERVICES, module.ROLES
+
+
+def run_import(client: AuthenticatedClient, path: str) -> None:
+    """Load definitions from a file and ensure them in Rootly."""
+    services, roles = load_data_file(path)
+    print(f"Loaded {len(services)} services and {len(roles)} roles from {path}")
+
+    print("\nEnsuring services...")
+    for service_dict in services:
+        ensure_service(client, service_dict)
+
+    print("\nEnsuring roles...")
+    for role_dict in roles:
+        ensure_role(client, role_dict)
+
+
 # --- Entry point ---
 
 def main():
     parser = argparse.ArgumentParser(description="Manage Rootly services and roles")
+    parser.add_argument(
+        "--import",
+        dest="import_file",
+        nargs="?",
+        const="data.py",
+        default=None,
+        metavar="FILE",
+        help="Create/update services and roles from FILE (default: data.py)",
+    )
     parser.add_argument(
         "--export",
         action="store_true",
@@ -329,6 +362,10 @@ def main():
     )
     args = parser.parse_args()
 
+    if not (args.import_file or args.export or args.report):
+        parser.print_help()
+        return
+
     api_key = os.environ.get("ROOTLY_API_KEY")
     if not api_key:
         print("Error: ROOTLY_API_KEY environment variable not set")
@@ -340,18 +377,12 @@ def main():
     )
 
     with client as client:
-        if args.export:
+        if args.import_file:
+            run_import(client, args.import_file)
+        elif args.export:
             export_to_data_file(client)
         elif args.report:
             print_report(client)
-        else:
-            print("Ensuring services...")
-            for service_dict in SERVICES:
-                ensure_service(client, service_dict)
-
-            print("\nEnsuring roles...")
-            for role_dict in ROLES:
-                ensure_role(client, role_dict)
 
 
 if __name__ == "__main__":
