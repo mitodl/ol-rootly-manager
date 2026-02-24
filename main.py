@@ -7,13 +7,40 @@ from rootly_sdk import AuthenticatedClient
 from rootly_sdk.api.services import create_service, list_services, update_service
 from rootly_sdk.api.roles import create_role, list_roles, update_role
 from rootly_sdk.api.teams import create_team, list_teams, update_team
+from rootly_sdk.api.alert_sources import create_alerts_source, list_alerts_sources, update_alerts_source
+from rootly_sdk.api.alert_routes import create_alert_route, list_alert_routes, update_alert_route
 from rootly_sdk.models.new_service import NewService
 from rootly_sdk.models.new_role import NewRole
 from rootly_sdk.models.new_team import NewTeam
 from rootly_sdk.models.update_service import UpdateService
 from rootly_sdk.models.update_role import UpdateRole
 from rootly_sdk.models.update_team import UpdateTeam
+from rootly_sdk.models.new_alerts_source import NewAlertsSource
+from rootly_sdk.models.update_alerts_source import UpdateAlertsSource
+from rootly_sdk.models.new_alert_route import NewAlertRoute
+from rootly_sdk.models.update_alert_route import UpdateAlertRoute
 from rootly_sdk.types import UNSET
+
+# --- SDK compatibility patch ---
+# The Rootly API can return conditionable_type=null on alert source urgency rules,
+# but the generated SDK only accepts the literal "AlertField" and raises TypeError
+# on None.  Patch the check function in the item module (where from_dict looks it
+# up via LOAD_GLOBAL) to treat None as a passthrough rather than an error.
+import rootly_sdk.models.alerts_source_alert_source_urgency_rules_attributes_item as _asuri_mod
+
+_orig_conditionable_type_check = (
+    _asuri_mod.check_alerts_source_alert_source_urgency_rules_attributes_item_conditionable_type
+)
+
+def _lenient_conditionable_type_check(value):
+    if value is None:
+        return None
+    return _orig_conditionable_type_check(value)
+
+_asuri_mod.check_alerts_source_alert_source_urgency_rules_attributes_item_conditionable_type = (
+    _lenient_conditionable_type_check
+)
+# --- end patch ---
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "data.py")
 
@@ -43,6 +70,9 @@ _TEAM_SIMPLE_WRITABLE = [
     "alert_broadcast_enabled", "incident_broadcast_enabled",
     "auto_add_members_when_attached",
 ]
+
+# Alert source fields that exist only in the response (server-generated); strip on export.
+_ALERT_SOURCE_READ_ONLY = {"status", "secret", "created_at", "updated_at", "email", "webhook_endpoint"}
 
 # All writable permission list fields on roles.
 _ROLE_PERMISSION_FIELDS = [
@@ -100,6 +130,38 @@ def fetch_all_teams(client: AuthenticatedClient) -> list:
         response = list_teams.sync_detailed(client=client, pagenumber=page, pagesize=100)
         if response.status_code != 200 or response.parsed is None:
             print(f"Error fetching teams (page {page}): {response.status_code}")
+            break
+        items.extend(response.parsed.data)
+        if response.parsed.links.next_ is None:
+            break
+        page += 1
+    return items
+
+
+def fetch_all_alert_sources(client: AuthenticatedClient) -> list:
+    """Fetch every alert source from Rootly, handling pagination."""
+    items = []
+    page = 1
+    while True:
+        response = list_alerts_sources.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        if response.status_code != 200 or response.parsed is None:
+            print(f"Error fetching alert sources (page {page}): {response.status_code}")
+            break
+        items.extend(response.parsed.data)
+        if response.parsed.links.next_ is None:
+            break
+        page += 1
+    return items
+
+
+def fetch_all_alert_routes(client: AuthenticatedClient) -> list:
+    """Fetch every alert route from Rootly, handling pagination."""
+    items = []
+    page = 1
+    while True:
+        response = list_alert_routes.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        if response.status_code != 200 or response.parsed is None:
+            print(f"Error fetching alert routes (page {page}): {response.status_code}")
             break
         items.extend(response.parsed.data)
         if response.parsed.links.next_ is None:
@@ -174,6 +236,27 @@ def team_to_writable_dict(item) -> dict:
     return d
 
 
+def alert_source_to_writable_dict(item) -> dict:
+    """Extract only writable attributes from an AlertsSourceListDataItem.
+
+    Calls the SDK's own to_dict() for correct serialization (e.g. enum → str),
+    then strips server-generated read-only keys.
+    """
+    d = item.attributes.to_dict()
+    for key in _ALERT_SOURCE_READ_ONLY:
+        d.pop(key, None)
+    return d
+
+
+def alert_route_to_writable_dict(item) -> dict:
+    """Extract all attributes from an AlertRouteListDataItem.
+
+    AlertRoute has no server-generated read-only fields; to_dict() handles
+    UUID → str serialization for alerts_source_ids and owning_team_ids.
+    """
+    return item.attributes.to_dict()
+
+
 # --- Report field specs ---
 #
 # Each entry is a (label, extractor_fn) tuple where:
@@ -213,55 +296,62 @@ TEAM_REPORT_FIELDS = [
     ("Slug", lambda item, ctx: item.attributes.slug),
 ]
 
+ALERT_SOURCE_REPORT_FIELDS = [
+    ("Name",        lambda item, ctx: item.attributes.name),
+    ("ID",          lambda item, ctx: item.id),
+    ("Source Type", lambda item, ctx: item.attributes.source_type if item.attributes.source_type is not UNSET else "(none)"),
+    ("Status",      lambda item, ctx: item.attributes.status),
+]
+
+ALERT_ROUTE_REPORT_FIELDS = [
+    ("Name",    lambda item, ctx: item.attributes.name),
+    ("ID",      lambda item, ctx: item.id),
+    ("Enabled", lambda item, ctx: item.attributes.enabled if item.attributes.enabled is not UNSET else "(unset)"),
+    ("Sources", lambda item, ctx: ", ".join(str(sid) for sid in item.attributes.alerts_source_ids)
+                                  if item.attributes.alerts_source_ids else "(none)"),
+]
+
+
+def _print_section(title: str, items: list, fields: list, context: dict) -> None:
+    """Print one report section with aligned labels."""
+    label_width = max((len(label) for label, _ in fields[1:]), default=0)
+    heading_fn = fields[0][1]
+    print(f"\n{title} ({len(items)})")
+    print("=" * 60)
+    for item in items:
+        print(heading_fn(item, context))
+        for label, extractor in fields[1:]:
+            print(f"  {label:<{label_width}}: {extractor(item, context)}")
+        print()
+
 
 def print_report(client: AuthenticatedClient) -> None:
-    """Print a human-readable report of all services, roles, and teams."""
+    """Print a human-readable report of all services, roles, teams, alert sources, and alert routes."""
     print("Fetching all services...")
     service_items = fetch_all_services(client)
     print("Fetching all roles...")
     role_items = fetch_all_roles(client)
     print("Fetching all teams...")
     team_items = fetch_all_teams(client)
+    print("Fetching all alert sources...")
+    alert_source_items = fetch_all_alert_sources(client)
+    print("Fetching all alert routes...")
+    alert_route_items = fetch_all_alert_routes(client)
 
     id_to_name = {item.id: item.attributes.name for item in service_items}
     context = {"id_to_name": id_to_name}
 
-    svc_label_width = max((len(label) for label, _ in SERVICE_REPORT_FIELDS[1:]), default=0)
-    role_label_width = max((len(label) for label, _ in ROLE_REPORT_FIELDS[1:]), default=0)
-    team_label_width = max((len(label) for label, _ in TEAM_REPORT_FIELDS[1:]), default=0)
-
-    print(f"\nServices ({len(service_items)})")
-    print("=" * 60)
-    for item in service_items:
-        heading_label, heading_fn = SERVICE_REPORT_FIELDS[0]
-        print(heading_fn(item, context))
-        for label, extractor in SERVICE_REPORT_FIELDS[1:]:
-            print(f"  {label:<{svc_label_width}}: {extractor(item, context)}")
-        print()
-
-    print(f"\nRoles ({len(role_items)})")
-    print("=" * 60)
-    for item in role_items:
-        heading_label, heading_fn = ROLE_REPORT_FIELDS[0]
-        print(heading_fn(item, context))
-        for label, extractor in ROLE_REPORT_FIELDS[1:]:
-            print(f"  {label:<{role_label_width}}: {extractor(item, context)}")
-        print()
-
-    print(f"\nTeams ({len(team_items)})")
-    print("=" * 60)
-    for item in team_items:
-        heading_label, heading_fn = TEAM_REPORT_FIELDS[0]
-        print(heading_fn(item, context))
-        for label, extractor in TEAM_REPORT_FIELDS[1:]:
-            print(f"  {label:<{team_label_width}}: {extractor(item, context)}")
-        print()
+    _print_section("Services", service_items, SERVICE_REPORT_FIELDS, context)
+    _print_section("Roles", role_items, ROLE_REPORT_FIELDS, context)
+    _print_section("Teams", team_items, TEAM_REPORT_FIELDS, context)
+    _print_section("Alert Sources", alert_source_items, ALERT_SOURCE_REPORT_FIELDS, context)
+    _print_section("Alert Routes", alert_route_items, ALERT_ROUTE_REPORT_FIELDS, context)
 
 
 # --- Export ---
 
 def export_to_data_file(client: AuthenticatedClient) -> None:
-    """Fetch all services, roles, and teams from Rootly and overwrite data.py."""
+    """Fetch all resources from Rootly and overwrite data.py."""
     print("Fetching all services...")
     service_items = fetch_all_services(client)
     services = [service_to_writable_dict(s) for s in service_items]
@@ -277,15 +367,34 @@ def export_to_data_file(client: AuthenticatedClient) -> None:
     teams = [team_to_writable_dict(t) for t in team_items]
     print(f"  Fetched {len(teams)} teams.")
 
-    services_repr = pprint.pformat(services, indent=4, sort_dicts=False)
-    roles_repr = pprint.pformat(roles, indent=4, sort_dicts=False)
-    teams_repr = pprint.pformat(teams, indent=4, sort_dicts=False)
-    content = f"SERVICES = {services_repr}\n\nROLES = {roles_repr}\n\nTEAMS = {teams_repr}\n"
+    print("Fetching all alert sources...")
+    alert_source_items = fetch_all_alert_sources(client)
+    alert_sources = [alert_source_to_writable_dict(s) for s in alert_source_items]
+    print(f"  Fetched {len(alert_sources)} alert sources.")
+
+    print("Fetching all alert routes...")
+    alert_route_items = fetch_all_alert_routes(client)
+    alert_routes = [alert_route_to_writable_dict(r) for r in alert_route_items]
+    print(f"  Fetched {len(alert_routes)} alert routes.")
+
+    def fmt(obj):
+        return pprint.pformat(obj, indent=4, sort_dicts=False)
+
+    content = (
+        f"SERVICES = {fmt(services)}\n\n"
+        f"ROLES = {fmt(roles)}\n\n"
+        f"TEAMS = {fmt(teams)}\n\n"
+        f"ALERT_SOURCES = {fmt(alert_sources)}\n\n"
+        f"ALERT_ROUTES = {fmt(alert_routes)}\n"
+    )
 
     with open(DATA_FILE, "w") as f:
         f.write(content)
 
-    print(f"\nWrote {len(services)} services, {len(roles)} roles, and {len(teams)} teams to {DATA_FILE}")
+    print(
+        f"\nWrote {len(services)} services, {len(roles)} roles, {len(teams)} teams, "
+        f"{len(alert_sources)} alert sources, and {len(alert_routes)} alert routes to {DATA_FILE}"
+    )
 
 
 # --- Find helpers (used by ensure functions) ---
@@ -320,6 +429,39 @@ def find_existing_team(client: AuthenticatedClient, name: str) -> str | None:
     for t in response.parsed.data:
         if t.attributes.name == name:
             return t.id
+    return None
+
+
+def find_existing_alert_source(client: AuthenticatedClient, name: str) -> str | None:
+    """Find an alert source by name and return its id, or None if not found.
+
+    Alert sources have no filtername; we use filtersearch (full-text) and then
+    verify an exact name match in the returned results.
+    """
+    page = 1
+    while True:
+        response = list_alerts_sources.sync_detailed(
+            client=client, filtersearch=name, pagenumber=page, pagesize=100
+        )
+        if response.status_code != 200 or response.parsed is None:
+            return None
+        for s in response.parsed.data:
+            if s.attributes.name == name:
+                return s.id
+        if response.parsed.links.next_ is None:
+            break
+        page += 1
+    return None
+
+
+def find_existing_alert_route(client: AuthenticatedClient, name: str) -> str | None:
+    """Find an alert route by name and return its id, or None if not found."""
+    response = list_alert_routes.sync_detailed(client=client, filtername=name)
+    if response.status_code != 200 or response.parsed is None:
+        return None
+    for r in response.parsed.data:
+        if r.attributes.name == name:
+            return r.id
     return None
 
 
@@ -439,22 +581,103 @@ def ensure_team(client: AuthenticatedClient, team_dict: dict) -> None:
                 print(f"  Error: {response.parsed}")
 
 
+def ensure_alert_source(client: AuthenticatedClient, alert_source_dict: dict) -> None:
+    """Create an alert source if it doesn't exist, or update it if it does."""
+    name = alert_source_dict["name"]
+    existing_id = find_existing_alert_source(client, name)
+
+    if existing_id is not None:
+        payload = UpdateAlertsSource.from_dict({
+            "data": {
+                "type": "alert_sources",
+                "attributes": alert_source_dict,
+            }
+        })
+        response = update_alerts_source.sync_detailed(
+            existing_id, client=client, body=payload
+        )
+        if response.status_code == 200:
+            print(f"Updated alert source: {name} (id: {existing_id})")
+        else:
+            print(f"Failed to update alert source '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+    else:
+        payload = NewAlertsSource.from_dict({
+            "data": {
+                "type": "alert_sources",
+                "attributes": alert_source_dict,
+            }
+        })
+        response = create_alerts_source.sync_detailed(client=client, body=payload)
+        if response.status_code == 201:
+            result = response.parsed
+            print(f"Created alert source: {name} (id: {result.data.id})")
+        else:
+            print(f"Failed to create alert source '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+
+
+def ensure_alert_route(client: AuthenticatedClient, alert_route_dict: dict) -> None:
+    """Create an alert route if it doesn't exist, or update it if it does."""
+    name = alert_route_dict["name"]
+    existing_id = find_existing_alert_route(client, name)
+
+    if existing_id is not None:
+        payload = UpdateAlertRoute.from_dict({
+            "data": {
+                "type": "alert_routes",
+                "attributes": alert_route_dict,
+            }
+        })
+        response = update_alert_route.sync_detailed(
+            existing_id, client=client, body=payload
+        )
+        if response.status_code == 200:
+            print(f"Updated alert route: {name} (id: {existing_id})")
+        else:
+            print(f"Failed to update alert route '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+    else:
+        payload = NewAlertRoute.from_dict({
+            "data": {
+                "type": "alert_routes",
+                "attributes": alert_route_dict,
+            }
+        })
+        response = create_alert_route.sync_detailed(client=client, body=payload)
+        if response.status_code == 201:
+            result = response.parsed
+            print(f"Created alert route: {name} (id: {result.data.id})")
+        else:
+            print(f"Failed to create alert route '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+
+
 # --- Import ---
 
-def load_data_file(path: str) -> tuple[list, list, list]:
-    """Dynamically load SERVICES, ROLES, and TEAMS from a Python file."""
+def load_data_file(path: str) -> tuple[list, list, list, list, list]:
+    """Dynamically load SERVICES, ROLES, TEAMS, ALERT_SOURCES, and ALERT_ROUTES from a Python file."""
     abs_path = os.path.abspath(path)
     spec = importlib.util.spec_from_file_location("_rootly_data", abs_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     teams = getattr(module, "TEAMS", [])
-    return module.SERVICES, module.ROLES, teams
+    alert_sources = getattr(module, "ALERT_SOURCES", [])
+    alert_routes = getattr(module, "ALERT_ROUTES", [])
+    return module.SERVICES, module.ROLES, teams, alert_sources, alert_routes
 
 
 def run_import(client: AuthenticatedClient, path: str) -> None:
     """Load definitions from a file and ensure them in Rootly."""
-    services, roles, teams = load_data_file(path)
-    print(f"Loaded {len(services)} services, {len(roles)} roles, and {len(teams)} teams from {path}")
+    services, roles, teams, alert_sources, alert_routes = load_data_file(path)
+    print(
+        f"Loaded {len(services)} services, {len(roles)} roles, {len(teams)} teams, "
+        f"{len(alert_sources)} alert sources, and {len(alert_routes)} alert routes from {path}"
+    )
 
     print("\nEnsuring services...")
     for service_dict in services:
@@ -467,6 +690,14 @@ def run_import(client: AuthenticatedClient, path: str) -> None:
     print("\nEnsuring teams...")
     for team_dict in teams:
         ensure_team(client, team_dict)
+
+    print("\nEnsuring alert sources...")
+    for alert_source_dict in alert_sources:
+        ensure_alert_source(client, alert_source_dict)
+
+    print("\nEnsuring alert routes...")
+    for alert_route_dict in alert_routes:
+        ensure_alert_route(client, alert_route_dict)
 
 
 # --- Entry point ---
