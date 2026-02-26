@@ -21,27 +21,6 @@ from rootly_sdk.models.new_alert_route import NewAlertRoute
 from rootly_sdk.models.update_alert_route import UpdateAlertRoute
 from rootly_sdk.types import UNSET
 
-# --- SDK compatibility patch ---
-# The Rootly API can return conditionable_type=null on alert source urgency rules,
-# but the generated SDK only accepts the literal "AlertField" and raises TypeError
-# on None.  Patch the check function in the item module (where from_dict looks it
-# up via LOAD_GLOBAL) to treat None as a passthrough rather than an error.
-import rootly_sdk.models.alerts_source_alert_source_urgency_rules_attributes_item as _asuri_mod
-
-_orig_conditionable_type_check = (
-    _asuri_mod.check_alerts_source_alert_source_urgency_rules_attributes_item_conditionable_type
-)
-
-def _lenient_conditionable_type_check(value):
-    if value is None:
-        return None
-    return _orig_conditionable_type_check(value)
-
-_asuri_mod.check_alerts_source_alert_source_urgency_rules_attributes_item_conditionable_type = (
-    _lenient_conditionable_type_check
-)
-# --- end patch ---
-
 DATA_FILE = os.path.join(os.path.dirname(__file__), "data.py")
 
 # Writable service fields that are readable from the Service response model.
