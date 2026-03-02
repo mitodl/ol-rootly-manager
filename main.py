@@ -9,6 +9,11 @@ from rootly_sdk.api.roles import create_role, list_roles, update_role
 from rootly_sdk.api.teams import create_team, list_teams, update_team
 from rootly_sdk.api.alert_sources import create_alerts_source, list_alerts_sources, update_alerts_source
 from rootly_sdk.api.alert_routes import create_alert_route, list_alert_routes, update_alert_route
+from rootly_sdk.api.escalation_policies import (
+    create_escalation_policy,
+    list_escalation_policies,
+    update_escalation_policy,
+)
 from rootly_sdk.models.new_service import NewService
 from rootly_sdk.models.new_role import NewRole
 from rootly_sdk.models.new_team import NewTeam
@@ -19,6 +24,8 @@ from rootly_sdk.models.new_alerts_source import NewAlertsSource
 from rootly_sdk.models.update_alerts_source import UpdateAlertsSource
 from rootly_sdk.models.new_alert_route import NewAlertRoute
 from rootly_sdk.models.update_alert_route import UpdateAlertRoute
+from rootly_sdk.models.new_escalation_policy import NewEscalationPolicy
+from rootly_sdk.models.update_escalation_policy import UpdateEscalationPolicy
 from rootly_sdk.types import UNSET
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "data.py")
@@ -52,6 +59,14 @@ _TEAM_SIMPLE_WRITABLE = [
 
 # Alert source fields that exist only in the response (server-generated); strip on export.
 _ALERT_SOURCE_READ_ONLY = {"status", "secret", "created_at", "updated_at", "email", "webhook_endpoint"}
+
+# Writable fields for nested alert source sub-resources.
+_URGENCY_RULE_WRITABLE = {"json_path", "operator", "value", "conditionable_type", "conditionable_id", "kind", "alert_urgency_id"}
+_ALERT_FIELD_WRITABLE = {"alert_field_id", "template_body"}
+_ALERT_TEMPLATE_WRITABLE = {"title", "description", "external_url"}
+
+# Escalation policy fields that exist only in the response; strip on export.
+_ESCALATION_POLICY_READ_ONLY = {"created_by_user_id", "last_updated_by_user_id", "created_at", "updated_at"}
 
 # All writable permission list fields on roles.
 _ROLE_PERMISSION_FIELDS = [
@@ -149,6 +164,22 @@ def fetch_all_alert_routes(client: AuthenticatedClient) -> list:
     return items
 
 
+def fetch_all_escalation_policies(client: AuthenticatedClient) -> list:
+    """Fetch every escalation policy from Rootly, handling pagination."""
+    items = []
+    page = 1
+    while True:
+        response = list_escalation_policies.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        if response.status_code != 200 or response.parsed is None:
+            print(f"Error fetching escalation policies (page {page}): {response.status_code}")
+            break
+        items.extend(response.parsed.data)
+        if response.parsed.links.next_ is None:
+            break
+        page += 1
+    return items
+
+
 # --- Conversion helpers ---
 
 def service_to_writable_dict(item) -> dict:
@@ -219,11 +250,29 @@ def alert_source_to_writable_dict(item) -> dict:
     """Extract only writable attributes from an AlertsSourceListDataItem.
 
     Calls the SDK's own to_dict() for correct serialization (e.g. enum → str),
-    then strips server-generated read-only keys.
+    then strips server-generated read-only keys (top-level and nested).
     """
     d = item.attributes.to_dict()
     for key in _ALERT_SOURCE_READ_ONLY:
         d.pop(key, None)
+    # Strip read-only and None fields from urgency rule items.
+    if d.get("alert_source_urgency_rules_attributes"):
+        d["alert_source_urgency_rules_attributes"] = [
+            {k: v for k, v in rule.items() if k in _URGENCY_RULE_WRITABLE and v is not None}
+            for rule in d["alert_source_urgency_rules_attributes"]
+        ]
+    # Strip read-only fields from alert field items (keep only alert_field_id + template_body).
+    if d.get("alert_source_fields_attributes"):
+        d["alert_source_fields_attributes"] = [
+            {k: v for k, v in field.items() if k in _ALERT_FIELD_WRITABLE}
+            for field in d["alert_source_fields_attributes"]
+        ]
+    # Strip read-only fields from alert template (keep only title, description, external_url).
+    if d.get("alert_template_attributes") and isinstance(d["alert_template_attributes"], dict):
+        d["alert_template_attributes"] = {
+            k: v for k, v in d["alert_template_attributes"].items()
+            if k in _ALERT_TEMPLATE_WRITABLE
+        }
     return d
 
 
@@ -234,6 +283,18 @@ def alert_route_to_writable_dict(item) -> dict:
     UUID → str serialization for alerts_source_ids and owning_team_ids.
     """
     return item.attributes.to_dict()
+
+
+def escalation_policy_to_writable_dict(item) -> dict:
+    """Extract only writable attributes from an EscalationPolicyListDataItem.
+
+    Calls the SDK's own to_dict() for correct serialization (business_hours),
+    then strips server-generated read-only keys.
+    """
+    d = item.attributes.to_dict()
+    for key in _ESCALATION_POLICY_READ_ONLY:
+        d.pop(key, None)
+    return d
 
 
 # --- Report field specs ---
@@ -290,6 +351,14 @@ ALERT_ROUTE_REPORT_FIELDS = [
                                   if item.attributes.alerts_source_ids else "(none)"),
 ]
 
+ESCALATION_POLICY_REPORT_FIELDS = [
+    ("Name",         lambda item, ctx: item.attributes.name),
+    ("ID",           lambda item, ctx: item.id),
+    ("Repeat Count", lambda item, ctx: item.attributes.repeat_count),
+    ("Description",  lambda item, ctx: item.attributes.description
+                                       if item.attributes.description not in (None, UNSET) else "(none)"),
+]
+
 
 def _print_section(title: str, items: list, fields: list, context: dict) -> None:
     """Print one report section with aligned labels."""
@@ -305,7 +374,7 @@ def _print_section(title: str, items: list, fields: list, context: dict) -> None
 
 
 def print_report(client: AuthenticatedClient) -> None:
-    """Print a human-readable report of all services, roles, teams, alert sources, and alert routes."""
+    """Print a human-readable report of all resources."""
     print("Fetching all services...")
     service_items = fetch_all_services(client)
     print("Fetching all roles...")
@@ -316,6 +385,8 @@ def print_report(client: AuthenticatedClient) -> None:
     alert_source_items = fetch_all_alert_sources(client)
     print("Fetching all alert routes...")
     alert_route_items = fetch_all_alert_routes(client)
+    print("Fetching all escalation policies...")
+    escalation_policy_items = fetch_all_escalation_policies(client)
 
     id_to_name = {item.id: item.attributes.name for item in service_items}
     context = {"id_to_name": id_to_name}
@@ -325,6 +396,7 @@ def print_report(client: AuthenticatedClient) -> None:
     _print_section("Teams", team_items, TEAM_REPORT_FIELDS, context)
     _print_section("Alert Sources", alert_source_items, ALERT_SOURCE_REPORT_FIELDS, context)
     _print_section("Alert Routes", alert_route_items, ALERT_ROUTE_REPORT_FIELDS, context)
+    _print_section("Escalation Policies", escalation_policy_items, ESCALATION_POLICY_REPORT_FIELDS, context)
 
 
 # --- Export ---
@@ -356,6 +428,11 @@ def export_to_data_file(client: AuthenticatedClient) -> None:
     alert_routes = [alert_route_to_writable_dict(r) for r in alert_route_items]
     print(f"  Fetched {len(alert_routes)} alert routes.")
 
+    print("Fetching all escalation policies...")
+    escalation_policy_items = fetch_all_escalation_policies(client)
+    escalation_policies = [escalation_policy_to_writable_dict(p) for p in escalation_policy_items]
+    print(f"  Fetched {len(escalation_policies)} escalation policies.")
+
     def fmt(obj):
         return pprint.pformat(obj, indent=4, sort_dicts=False)
 
@@ -364,7 +441,8 @@ def export_to_data_file(client: AuthenticatedClient) -> None:
         f"ROLES = {fmt(roles)}\n\n"
         f"TEAMS = {fmt(teams)}\n\n"
         f"ALERT_SOURCES = {fmt(alert_sources)}\n\n"
-        f"ALERT_ROUTES = {fmt(alert_routes)}\n"
+        f"ALERT_ROUTES = {fmt(alert_routes)}\n\n"
+        f"ESCALATION_POLICIES = {fmt(escalation_policies)}\n"
     )
 
     with open(DATA_FILE, "w") as f:
@@ -372,7 +450,8 @@ def export_to_data_file(client: AuthenticatedClient) -> None:
 
     print(
         f"\nWrote {len(services)} services, {len(roles)} roles, {len(teams)} teams, "
-        f"{len(alert_sources)} alert sources, and {len(alert_routes)} alert routes to {DATA_FILE}"
+        f"{len(alert_sources)} alert sources, {len(alert_routes)} alert routes, and "
+        f"{len(escalation_policies)} escalation policies to {DATA_FILE}"
     )
 
 
@@ -412,24 +491,13 @@ def find_existing_team(client: AuthenticatedClient, name: str) -> str | None:
 
 
 def find_existing_alert_source(client: AuthenticatedClient, name: str) -> str | None:
-    """Find an alert source by name and return its id, or None if not found.
-
-    Alert sources have no filtername; we use filtersearch (full-text) and then
-    verify an exact name match in the returned results.
-    """
-    page = 1
-    while True:
-        response = list_alerts_sources.sync_detailed(
-            client=client, filtersearch=name, pagenumber=page, pagesize=100
-        )
-        if response.status_code != 200 or response.parsed is None:
-            return None
-        for s in response.parsed.data:
-            if s.attributes.name == name:
-                return s.id
-        if response.parsed.links.next_ is None:
-            break
-        page += 1
+    """Find an alert source by name and return its id, or None if not found."""
+    response = list_alerts_sources.sync_detailed(client=client, filtername=name)
+    if response.status_code != 200 or response.parsed is None:
+        return None
+    for s in response.parsed.data:
+        if s.attributes.name == name:
+            return s.id
     return None
 
 
@@ -441,6 +509,17 @@ def find_existing_alert_route(client: AuthenticatedClient, name: str) -> str | N
     for r in response.parsed.data:
         if r.attributes.name == name:
             return r.id
+    return None
+
+
+def find_existing_escalation_policy(client: AuthenticatedClient, name: str) -> str | None:
+    """Find an escalation policy by name and return its id, or None if not found."""
+    response = list_escalation_policies.sync_detailed(client=client, filtername=name)
+    if response.status_code != 200 or response.parsed is None:
+        return None
+    for p in response.parsed.data:
+        if p.attributes.name == name:
+            return p.id
     return None
 
 
@@ -487,6 +566,9 @@ def ensure_service(client: AuthenticatedClient, service_dict: dict) -> None:
 def ensure_role(client: AuthenticatedClient, role_dict: dict) -> None:
     """Create a role if it doesn't exist, or update it if it does."""
     name = role_dict["name"]
+    if not name or name == "None":
+        # Some built-in roles (e.g. no_access) have a null name in the API; skip them.
+        return
     existing_id = find_existing_role(client, name)
 
     if existing_id is not None:
@@ -501,6 +583,9 @@ def ensure_role(client: AuthenticatedClient, role_dict: dict) -> None:
         )
         if response.status_code == 200:
             print(f"Updated role: {name} (id: {existing_id})")
+        elif response.status_code == 404:
+            # Built-in system roles (owner, admin, observer) return 404; they can't be modified.
+            print(f"Skipping role '{name}': not modifiable (system role).")
         else:
             print(f"Failed to update role '{name}': {response.status_code}")
             if response.parsed:
@@ -566,10 +651,28 @@ def ensure_alert_source(client: AuthenticatedClient, alert_source_dict: dict) ->
     existing_id = find_existing_alert_source(client, name)
 
     if existing_id is not None:
+        # Sanitize nested sub-resources: strip server-generated/read-only fields that
+        # are included in exports but rejected by the update API.
+        sanitized = dict(alert_source_dict)
+        if sanitized.get("alert_source_urgency_rules_attributes"):
+            sanitized["alert_source_urgency_rules_attributes"] = [
+                {k: v for k, v in rule.items() if k in _URGENCY_RULE_WRITABLE and v is not None}
+                for rule in sanitized["alert_source_urgency_rules_attributes"]
+            ]
+        if sanitized.get("alert_source_fields_attributes"):
+            sanitized["alert_source_fields_attributes"] = [
+                {k: v for k, v in field.items() if k in _ALERT_FIELD_WRITABLE}
+                for field in sanitized["alert_source_fields_attributes"]
+            ]
+        if sanitized.get("alert_template_attributes") and isinstance(sanitized["alert_template_attributes"], dict):
+            sanitized["alert_template_attributes"] = {
+                k: v for k, v in sanitized["alert_template_attributes"].items()
+                if k in _ALERT_TEMPLATE_WRITABLE
+            }
         payload = UpdateAlertsSource.from_dict({
             "data": {
                 "type": "alert_sources",
-                "attributes": alert_source_dict,
+                "attributes": sanitized,
             }
         })
         response = update_alerts_source.sync_detailed(
@@ -636,10 +739,48 @@ def ensure_alert_route(client: AuthenticatedClient, alert_route_dict: dict) -> N
                 print(f"  Error: {response.parsed}")
 
 
+def ensure_escalation_policy(client: AuthenticatedClient, policy_dict: dict) -> None:
+    """Create an escalation policy if it doesn't exist, or update it if it does."""
+    name = policy_dict["name"]
+    existing_id = find_existing_escalation_policy(client, name)
+
+    if existing_id is not None:
+        payload = UpdateEscalationPolicy.from_dict({
+            "data": {
+                "type": "escalation_policies",
+                "attributes": policy_dict,
+            }
+        })
+        response = update_escalation_policy.sync_detailed(
+            existing_id, client=client, body=payload
+        )
+        if response.status_code == 200:
+            print(f"Updated escalation policy: {name} (id: {existing_id})")
+        else:
+            print(f"Failed to update escalation policy '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+    else:
+        payload = NewEscalationPolicy.from_dict({
+            "data": {
+                "type": "escalation_policies",
+                "attributes": policy_dict,
+            }
+        })
+        response = create_escalation_policy.sync_detailed(client=client, body=payload)
+        if response.status_code == 201:
+            result = response.parsed
+            print(f"Created escalation policy: {name} (id: {result.data.id})")
+        else:
+            print(f"Failed to create escalation policy '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+
+
 # --- Import ---
 
-def load_data_file(path: str) -> tuple[list, list, list, list, list]:
-    """Dynamically load SERVICES, ROLES, TEAMS, ALERT_SOURCES, and ALERT_ROUTES from a Python file."""
+def load_data_file(path: str) -> tuple[list, list, list, list, list, list]:
+    """Dynamically load all resource lists from a Python data file."""
     abs_path = os.path.abspath(path)
     spec = importlib.util.spec_from_file_location("_rootly_data", abs_path)
     module = importlib.util.module_from_spec(spec)
@@ -647,15 +788,17 @@ def load_data_file(path: str) -> tuple[list, list, list, list, list]:
     teams = getattr(module, "TEAMS", [])
     alert_sources = getattr(module, "ALERT_SOURCES", [])
     alert_routes = getattr(module, "ALERT_ROUTES", [])
-    return module.SERVICES, module.ROLES, teams, alert_sources, alert_routes
+    escalation_policies = getattr(module, "ESCALATION_POLICIES", [])
+    return module.SERVICES, module.ROLES, teams, alert_sources, alert_routes, escalation_policies
 
 
 def run_import(client: AuthenticatedClient, path: str) -> None:
     """Load definitions from a file and ensure them in Rootly."""
-    services, roles, teams, alert_sources, alert_routes = load_data_file(path)
+    services, roles, teams, alert_sources, alert_routes, escalation_policies = load_data_file(path)
     print(
         f"Loaded {len(services)} services, {len(roles)} roles, {len(teams)} teams, "
-        f"{len(alert_sources)} alert sources, and {len(alert_routes)} alert routes from {path}"
+        f"{len(alert_sources)} alert sources, {len(alert_routes)} alert routes, and "
+        f"{len(escalation_policies)} escalation policies from {path}"
     )
 
     print("\nEnsuring services...")
@@ -677,6 +820,10 @@ def run_import(client: AuthenticatedClient, path: str) -> None:
     print("\nEnsuring alert routes...")
     for alert_route_dict in alert_routes:
         ensure_alert_route(client, alert_route_dict)
+
+    print("\nEnsuring escalation policies...")
+    for policy_dict in escalation_policies:
+        ensure_escalation_policy(client, policy_dict)
 
 
 # --- Entry point ---
