@@ -651,28 +651,10 @@ def ensure_alert_source(client: AuthenticatedClient, alert_source_dict: dict) ->
     existing_id = find_existing_alert_source(client, name)
 
     if existing_id is not None:
-        # Sanitize nested sub-resources: strip server-generated/read-only fields that
-        # are included in exports but rejected by the update API.
-        sanitized = dict(alert_source_dict)
-        if sanitized.get("alert_source_urgency_rules_attributes"):
-            sanitized["alert_source_urgency_rules_attributes"] = [
-                {k: v for k, v in rule.items() if k in _URGENCY_RULE_WRITABLE and v is not None}
-                for rule in sanitized["alert_source_urgency_rules_attributes"]
-            ]
-        if sanitized.get("alert_source_fields_attributes"):
-            sanitized["alert_source_fields_attributes"] = [
-                {k: v for k, v in field.items() if k in _ALERT_FIELD_WRITABLE}
-                for field in sanitized["alert_source_fields_attributes"]
-            ]
-        if sanitized.get("alert_template_attributes") and isinstance(sanitized["alert_template_attributes"], dict):
-            sanitized["alert_template_attributes"] = {
-                k: v for k, v in sanitized["alert_template_attributes"].items()
-                if k in _ALERT_TEMPLATE_WRITABLE
-            }
         payload = UpdateAlertsSource.from_dict({
             "data": {
                 "type": "alert_sources",
-                "attributes": sanitized,
+                "attributes": alert_source_dict,
             }
         })
         response = update_alerts_source.sync_detailed(
