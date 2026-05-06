@@ -1508,7 +1508,9 @@ INCIDENT_ROLES = [   {   'name': 'Commander',
         'enabled': True,
         'allow_multi_user_assignment': False}]
 
-SCHEDULES = [   {   'name': 'Primary On Call Schedule',
+SCHEDULES = [   {   'shift_start_notifications_enabled': True,
+        'shift_update_notifications_enabled': True,
+        'name': 'Primary On Call Schedule',
         'owner_user_id': 99415,
         'description': 'Platform Engineering Team On Call Schedule',
         'all_time_coverage': True,
