@@ -1,6 +1,6 @@
 # ol-rootly-manager
 
-A Python CLI tool for managing Rootly resources (services, roles, teams, alert sources, alert routes, and escalation policies) via the Rootly API.
+A Python CLI tool for managing Rootly resources (services, functionalities, status pages, status page templates, roles, teams, alert sources, alert routes, and escalation policies) via the Rootly API.
 
 ## Requirements
 
@@ -34,7 +34,7 @@ uv run python main.py --export
 
 ### `--import [FILE]`
 
-Create or update Rootly resources from a Python data file (default: `data.py`). This is idempotent — existing resources are updated and missing ones are created.
+Create or update Rootly resources from a Python data file (default: `data.py`). This is idempotent — existing resources are updated and missing ones are created. Managed resources include services, roles, teams, functionalities, status pages, status page templates, alert sources, alert routes, and escalation policies.
 
 ```bash
 uv run python main.py --import           # uses data.py
@@ -74,6 +74,9 @@ Resource types included:
 | Alert source        | `rootly:index/alertsSource:AlertsSource`     |
 | Alert route         | `rootly:index/alertRoute:AlertRoute`         |
 | Service             | `rootly:index/service:Service`               |
+| Functionality       | `rootly:index/functionality:Functionality`   |
+| Status page         | `rootly:index/statusPage:StatusPage`         |
+| Status page template| `rootly:index/statusPageTemplate:StatusPageTemplate` |
 | Role                | `rootly:index/role:Role`                     |
 | Team                | `rootly:index/team:Team`                     |
 | Escalation policy   | `rootly:index/escalationPolicy:EscalationPolicy` |

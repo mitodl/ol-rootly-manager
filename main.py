@@ -4,72 +4,107 @@ import json
 import os
 import pprint
 import re
+from typing import Any, cast
 
 from rootly_sdk import AuthenticatedClient
-from rootly_sdk.api.services import create_service, list_services, update_service
-from rootly_sdk.api.roles import create_role, list_roles, update_role
-from rootly_sdk.api.teams import create_team, list_teams, update_team
-from rootly_sdk.api.alert_sources import create_alerts_source, list_alerts_sources, update_alerts_source
-from rootly_sdk.api.alert_routes import create_alert_route, list_alert_routes, update_alert_route
+from rootly_sdk.api.alert_routes import (
+    create_alert_route,
+    list_alert_routes,
+    update_alert_route,
+)
+from rootly_sdk.api.alert_sources import (
+    create_alerts_source,
+    list_alerts_sources,
+    update_alerts_source,
+)
+from rootly_sdk.api.causes import list_causes
+from rootly_sdk.api.custom_forms import list_custom_forms
+from rootly_sdk.api.dashboard_panels import list_dashboard_panels
+from rootly_sdk.api.dashboards import list_dashboards
+
+# --- Additional SDK imports for Pulumi-import coverage ---
+from rootly_sdk.api.environments import list_environments
+from rootly_sdk.api.escalation_levels_path import list_escalation_levels_paths
+from rootly_sdk.api.escalation_paths import list_escalation_paths
 from rootly_sdk.api.escalation_policies import (
     create_escalation_policy,
     list_escalation_policies,
     update_escalation_policy,
 )
-from rootly_sdk.models.new_service import NewService
-from rootly_sdk.models.new_role import NewRole
-from rootly_sdk.models.new_team import NewTeam
-from rootly_sdk.models.update_service import UpdateService
-from rootly_sdk.models.update_role import UpdateRole
-from rootly_sdk.models.update_team import UpdateTeam
-from rootly_sdk.models.new_alerts_source import NewAlertsSource
-from rootly_sdk.models.update_alerts_source import UpdateAlertsSource
-from rootly_sdk.models.new_alert_route import NewAlertRoute
-from rootly_sdk.models.update_alert_route import UpdateAlertRoute
-from rootly_sdk.models.new_escalation_policy import NewEscalationPolicy
-from rootly_sdk.models.update_escalation_policy import UpdateEscalationPolicy
-from rootly_sdk.types import UNSET
-
-# --- Additional SDK imports for Pulumi-import coverage ---
-from rootly_sdk.api.environments import list_environments
-from rootly_sdk.api.severities import list_severities
-from rootly_sdk.api.functionalities import list_functionalities
-from rootly_sdk.api.causes import list_causes
-from rootly_sdk.api.incident_types import list_incident_types
-from rootly_sdk.api.incident_roles import list_incident_roles
-from rootly_sdk.api.incident_role_tasks import list_incident_role_tasks
-from rootly_sdk.api.schedules import list_schedules
-from rootly_sdk.api.schedule_rotations import list_schedule_rotations
-from rootly_sdk.api.schedule_rotation_active_days import list_schedule_rotation_active_days
-from rootly_sdk.api.schedule_rotation_users import list_schedule_rotation_users
-from rootly_sdk.api.playbooks import list_playbooks
-from rootly_sdk.api.playbook_tasks import list_playbook_tasks
-from rootly_sdk.api.webhooks_endpoints import list_webhooks_endpoints
-from rootly_sdk.api.secrets import list_secrets
-from rootly_sdk.api.status_pages import list_status_pages
-from rootly_sdk.api.status_page_templates import list_status_page_templates
-from rootly_sdk.api.form_fields import list_form_fields
 from rootly_sdk.api.form_field_options import list_form_field_options
 from rootly_sdk.api.form_field_positions import list_form_field_positions
-from rootly_sdk.api.custom_forms import list_custom_forms
+from rootly_sdk.api.form_fields import list_form_fields
+from rootly_sdk.api.functionalities import (
+    create_functionality,
+    list_functionalities,
+    update_functionality,
+)
+from rootly_sdk.api.incident_permission_set_booleans import (
+    list_incident_permission_set_booleans,
+)
+from rootly_sdk.api.incident_permission_set_resources import (
+    list_incident_permission_set_resources,
+)
 from rootly_sdk.api.incident_permission_sets import list_incident_permission_sets
-from rootly_sdk.api.incident_permission_set_booleans import list_incident_permission_set_booleans
-from rootly_sdk.api.incident_permission_set_resources import list_incident_permission_set_resources
-from rootly_sdk.api.workflows import list_workflows
-from rootly_sdk.api.workflow_groups import list_workflow_groups
-from rootly_sdk.api.retrospective_templates import list_postmortem_templates
+from rootly_sdk.api.incident_role_tasks import list_incident_role_tasks
+from rootly_sdk.api.incident_roles import list_incident_roles
+from rootly_sdk.api.incident_types import list_incident_types
+from rootly_sdk.api.playbook_tasks import list_playbook_tasks
+from rootly_sdk.api.playbooks import list_playbooks
+from rootly_sdk.api.retrospective_configurations import (
+    list_retrospective_configurations,
+)
 from rootly_sdk.api.retrospective_processes import list_retrospective_processes
 from rootly_sdk.api.retrospective_steps import list_retrospective_steps
-from rootly_sdk.api.retrospective_configurations import list_retrospective_configurations
-from rootly_sdk.api.dashboards import list_dashboards
-from rootly_sdk.api.dashboard_panels import list_dashboard_panels
-from rootly_sdk.api.escalation_paths import list_escalation_paths
-from rootly_sdk.api.escalation_levels_path import list_escalation_levels_paths
+from rootly_sdk.api.retrospective_templates import list_postmortem_templates
+from rootly_sdk.api.roles import create_role, list_roles, update_role
+from rootly_sdk.api.schedule_rotation_active_days import (
+    list_schedule_rotation_active_days,
+)
+from rootly_sdk.api.schedule_rotation_users import list_schedule_rotation_users
+from rootly_sdk.api.schedule_rotations import list_schedule_rotations
+from rootly_sdk.api.schedules import list_schedules
+from rootly_sdk.api.secrets import list_secrets
+from rootly_sdk.api.services import create_service, list_services, update_service
+from rootly_sdk.api.severities import list_severities
+from rootly_sdk.api.status_page_templates import (
+    create_status_page_template,
+    list_status_page_templates,
+    update_status_page_template,
+)
+from rootly_sdk.api.status_pages import (
+    create_status_page,
+    list_status_pages,
+    update_status_page,
+)
+from rootly_sdk.api.teams import create_team, list_teams, update_team
+from rootly_sdk.api.webhooks_endpoints import list_webhooks_endpoints
+from rootly_sdk.api.workflow_groups import list_workflow_groups
+from rootly_sdk.api.workflows import list_workflows
 from rootly_sdk.models.action_item_trigger_params import ActionItemTriggerParams
 from rootly_sdk.models.alert_trigger_params import AlertTriggerParams
 from rootly_sdk.models.incident_trigger_params import IncidentTriggerParams
+from rootly_sdk.models.new_alert_route import NewAlertRoute
+from rootly_sdk.models.new_alerts_source import NewAlertsSource
+from rootly_sdk.models.new_escalation_policy import NewEscalationPolicy
+from rootly_sdk.models.new_functionality import NewFunctionality
+from rootly_sdk.models.new_role import NewRole
+from rootly_sdk.models.new_service import NewService
+from rootly_sdk.models.new_status_page import NewStatusPage
+from rootly_sdk.models.new_status_page_template import NewStatusPageTemplate
+from rootly_sdk.models.new_team import NewTeam
 from rootly_sdk.models.pulse_trigger_params import PulseTriggerParams
 from rootly_sdk.models.simple_trigger_params import SimpleTriggerParams
+from rootly_sdk.models.update_alert_route import UpdateAlertRoute
+from rootly_sdk.models.update_alerts_source import UpdateAlertsSource
+from rootly_sdk.models.update_escalation_policy import UpdateEscalationPolicy
+from rootly_sdk.models.update_functionality import UpdateFunctionality
+from rootly_sdk.models.update_role import UpdateRole
+from rootly_sdk.models.update_service import UpdateService
+from rootly_sdk.models.update_status_page import UpdateStatusPage
+from rootly_sdk.models.update_status_page_template import UpdateStatusPageTemplate
+from rootly_sdk.models.update_team import UpdateTeam
+from rootly_sdk.types import UNSET
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "data.py")
 
@@ -78,38 +113,91 @@ DATA_FILE = os.path.join(os.path.dirname(__file__), "data.py")
 # and fields present in NewServiceDataAttributes but absent from Service
 # (opsgenie_team_id, show_uptime, show_uptime_last_days).
 _SERVICE_SIMPLE_WRITABLE = [
-    "name", "description", "public_description", "notify_emails", "color", "position",
-    "backstage_id", "pagerduty_id", "external_id", "opsgenie_id", "cortex_id",
-    "service_now_ci_sys_id", "github_repository_name", "github_repository_branch",
-    "gitlab_repository_name", "gitlab_repository_branch", "environment_ids",
-    "service_ids", "owner_group_ids", "owner_user_ids", "kubernetes_deployment_name",
-    "alerts_email_enabled", "alert_urgency_id", "escalation_policy_id",
-    "alert_broadcast_enabled", "incident_broadcast_enabled",
+    "name",
+    "description",
+    "public_description",
+    "notify_emails",
+    "color",
+    "position",
+    "backstage_id",
+    "pagerduty_id",
+    "external_id",
+    "opsgenie_id",
+    "cortex_id",
+    "service_now_ci_sys_id",
+    "github_repository_name",
+    "github_repository_branch",
+    "gitlab_repository_name",
+    "gitlab_repository_branch",
+    "environment_ids",
+    "service_ids",
+    "owner_group_ids",
+    "owner_user_ids",
+    "kubernetes_deployment_name",
+    "alerts_email_enabled",
+    "alert_urgency_id",
+    "escalation_policy_id",
+    "alert_broadcast_enabled",
+    "incident_broadcast_enabled",
 ]
 
 # Writable team fields that are readable from the Team response model.
 # Excludes read-only fields (created_at, updated_at, slug, alerts_email_address)
 # and opsgenie_team_id (create-only, absent from Team response and UpdateTeamDataAttributes).
 _TEAM_SIMPLE_WRITABLE = [
-    "name", "description", "notify_emails", "color", "position",
-    "backstage_id", "external_id", "pagerduty_id", "pagerduty_service_id",
-    "opsgenie_id", "victor_ops_id", "pagertree_id", "cortex_id",
-    "service_now_ci_sys_id", "user_ids", "admin_ids",
-    "alerts_email_enabled", "alert_urgency_id",
-    "alert_broadcast_enabled", "incident_broadcast_enabled",
+    "name",
+    "description",
+    "notify_emails",
+    "color",
+    "position",
+    "backstage_id",
+    "external_id",
+    "pagerduty_id",
+    "pagerduty_service_id",
+    "opsgenie_id",
+    "victor_ops_id",
+    "pagertree_id",
+    "cortex_id",
+    "service_now_ci_sys_id",
+    "user_ids",
+    "admin_ids",
+    "alerts_email_enabled",
+    "alert_urgency_id",
+    "alert_broadcast_enabled",
+    "incident_broadcast_enabled",
     "auto_add_members_when_attached",
 ]
 
 # Alert source fields that exist only in the response (server-generated); strip on export.
-_ALERT_SOURCE_READ_ONLY = {"status", "secret", "created_at", "updated_at", "email", "webhook_endpoint"}
+_ALERT_SOURCE_READ_ONLY = {
+    "status",
+    "secret",
+    "created_at",
+    "updated_at",
+    "email",
+    "webhook_endpoint",
+}
 
 # Writable fields for nested alert source sub-resources.
-_URGENCY_RULE_WRITABLE = {"json_path", "operator", "value", "conditionable_type", "conditionable_id", "kind", "alert_urgency_id"}
+_URGENCY_RULE_WRITABLE = {
+    "json_path",
+    "operator",
+    "value",
+    "conditionable_type",
+    "conditionable_id",
+    "kind",
+    "alert_urgency_id",
+}
 _ALERT_FIELD_WRITABLE = {"alert_field_id", "template_body"}
 _ALERT_TEMPLATE_WRITABLE = {"title", "description", "external_url"}
 
 # Escalation policy fields that exist only in the response; strip on export.
-_ESCALATION_POLICY_READ_ONLY = {"created_by_user_id", "last_updated_by_user_id", "created_at", "updated_at"}
+_ESCALATION_POLICY_READ_ONLY = {
+    "created_by_user_id",
+    "last_updated_by_user_id",
+    "created_at",
+    "updated_at",
+}
 
 # Common server-generated fields present on most resources.
 _COMMON_READ_ONLY = {"created_at", "updated_at"}
@@ -117,32 +205,65 @@ _COMMON_READ_ONLY = {"created_at", "updated_at"}
 # Per-type additional read-only fields (beyond _COMMON_READ_ONLY).
 # slug is auto-generated from name on create, so strip it to avoid conflicts on re-import.
 _SLUG_FIELD = {"slug"}
-_WEBHOOK_READ_ONLY        = _COMMON_READ_ONLY | _SLUG_FIELD | {"secret"}   # server-generated HMAC secret
-_POST_MORTEM_READ_ONLY    = _COMMON_READ_ONLY | _SLUG_FIELD | {"content_html", "content_json"}  # derived render fields
-_WORKFLOW_READ_ONLY       = _COMMON_READ_ONLY | _SLUG_FIELD | {"created_by_user_id", "last_updated_by_user_id"}
+_FUNCTIONALITY_READ_ONLY = _COMMON_READ_ONLY | _SLUG_FIELD
+_STATUS_PAGE_READ_ONLY = (
+    _COMMON_READ_ONLY
+    | _SLUG_FIELD
+    | {"saml_idp_cert_fingerprint", "external_domain_names"}
+)
+_STATUS_PAGE_TEMPLATE_READ_ONLY = _COMMON_READ_ONLY
+_WEBHOOK_READ_ONLY = (
+    _COMMON_READ_ONLY | _SLUG_FIELD | {"secret"}
+)  # server-generated HMAC secret
+_POST_MORTEM_READ_ONLY = (
+    _COMMON_READ_ONLY | _SLUG_FIELD | {"content_html", "content_json"}
+)  # derived render fields
+_WORKFLOW_READ_ONLY = (
+    _COMMON_READ_ONLY | _SLUG_FIELD | {"created_by_user_id", "last_updated_by_user_id"}
+)
 
 # All writable permission list fields on roles.
 _ROLE_PERMISSION_FIELDS = [
-    "alerts_permissions", "api_keys_permissions", "audits_permissions",
-    "billing_permissions", "environments_permissions", "form_fields_permissions",
-    "functionalities_permissions", "groups_permissions", "incident_causes_permissions",
-    "incident_feedbacks_permissions", "incident_roles_permissions", "incident_types_permissions",
-    "incidents_permissions", "integrations_permissions", "invitations_permissions",
-    "playbooks_permissions", "private_incidents_permissions", "pulses_permissions",
-    "retrospective_permissions", "roles_permissions", "secrets_permissions",
-    "services_permissions", "severities_permissions", "status_pages_permissions",
-    "webhooks_permissions", "workflows_permissions",
+    "alerts_permissions",
+    "api_keys_permissions",
+    "audits_permissions",
+    "billing_permissions",
+    "environments_permissions",
+    "form_fields_permissions",
+    "functionalities_permissions",
+    "groups_permissions",
+    "incident_causes_permissions",
+    "incident_feedbacks_permissions",
+    "incident_roles_permissions",
+    "incident_types_permissions",
+    "incidents_permissions",
+    "integrations_permissions",
+    "invitations_permissions",
+    "playbooks_permissions",
+    "private_incidents_permissions",
+    "pulses_permissions",
+    "retrospective_permissions",
+    "roles_permissions",
+    "secrets_permissions",
+    "services_permissions",
+    "severities_permissions",
+    "status_pages_permissions",
+    "webhooks_permissions",
+    "workflows_permissions",
 ]
 
 
 # --- Pagination helpers ---
+
 
 def fetch_all_services(client: AuthenticatedClient) -> list:
     """Fetch every service from Rootly, handling pagination."""
     items = []
     page = 1
     while True:
-        response = list_services.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        response = list_services.sync_detailed(
+            client=client, pagenumber=page, pagesize=100
+        )
         if response.status_code != 200 or response.parsed is None:
             print(f"Error fetching services (page {page}): {response.status_code}")
             break
@@ -158,7 +279,9 @@ def fetch_all_roles(client: AuthenticatedClient) -> list:
     items = []
     page = 1
     while True:
-        response = list_roles.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        response = list_roles.sync_detailed(
+            client=client, pagenumber=page, pagesize=100
+        )
         if response.status_code != 200 or response.parsed is None:
             print(f"Error fetching roles (page {page}): {response.status_code}")
             break
@@ -174,7 +297,9 @@ def fetch_all_teams(client: AuthenticatedClient) -> list:
     items = []
     page = 1
     while True:
-        response = list_teams.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        response = list_teams.sync_detailed(
+            client=client, pagenumber=page, pagesize=100
+        )
         if response.status_code != 200 or response.parsed is None:
             print(f"Error fetching teams (page {page}): {response.status_code}")
             break
@@ -190,7 +315,9 @@ def fetch_all_alert_sources(client: AuthenticatedClient) -> list:
     items = []
     page = 1
     while True:
-        response = list_alerts_sources.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        response = list_alerts_sources.sync_detailed(
+            client=client, pagenumber=page, pagesize=100
+        )
         if response.status_code != 200 or response.parsed is None:
             print(f"Error fetching alert sources (page {page}): {response.status_code}")
             break
@@ -206,12 +333,15 @@ def fetch_all_alert_routes(client: AuthenticatedClient) -> list:
     items = []
     page = 1
     while True:
-        response = list_alert_routes.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        response = list_alert_routes.sync_detailed(
+            client=client, pagenumber=page, pagesize=100
+        )
         if response.status_code != 200 or response.parsed is None:
             print(f"Error fetching alert routes (page {page}): {response.status_code}")
             break
-        items.extend(response.parsed.data)
-        if response.parsed.links.next_ is None:
+        items.extend(getattr(response.parsed, "data", []))
+        links = getattr(response.parsed, "links", None)
+        if links is None or links.next_ is None:
             break
         page += 1
     return items
@@ -222,9 +352,13 @@ def fetch_all_escalation_policies(client: AuthenticatedClient) -> list:
     items = []
     page = 1
     while True:
-        response = list_escalation_policies.sync_detailed(client=client, pagenumber=page, pagesize=100)
+        response = list_escalation_policies.sync_detailed(
+            client=client, pagenumber=page, pagesize=100
+        )
         if response.status_code != 200 or response.parsed is None:
-            print(f"Error fetching escalation policies (page {page}): {response.status_code}")
+            print(
+                f"Error fetching escalation policies (page {page}): {response.status_code}"
+            )
             break
         items.extend(response.parsed.data)
         if response.parsed.links.next_ is None:
@@ -234,6 +368,7 @@ def fetch_all_escalation_policies(client: AuthenticatedClient) -> list:
 
 
 # --- Generic fetch helpers for Pulumi-import coverage ---
+
 
 def _fetch_paginated_list(client: AuthenticatedClient, list_fn, label: str) -> list:
     """Generic paginated top-level resource fetcher.
@@ -257,7 +392,9 @@ def _fetch_paginated_list(client: AuthenticatedClient, list_fn, label: str) -> l
     return items
 
 
-def _fetch_sub_resource_list(client: AuthenticatedClient, list_fn, parent_items: list, label: str) -> list:
+def _fetch_sub_resource_list(
+    client: AuthenticatedClient, list_fn, parent_items: list, label: str
+) -> list:
     """Generic sub-resource fetcher.
 
     For each item in *parent_items*, calls ``list_fn.sync_detailed(parent.id, …)``
@@ -268,9 +405,13 @@ def _fetch_sub_resource_list(client: AuthenticatedClient, list_fn, parent_items:
     for parent in parent_items:
         page = 1
         while True:
-            response = list_fn.sync_detailed(str(parent.id), client=client, pagenumber=page, pagesize=100)
+            response = list_fn.sync_detailed(
+                str(parent.id), client=client, pagenumber=page, pagesize=100
+            )
             if response.status_code != 200 or response.parsed is None:
-                print(f"  Error fetching {label} for parent {parent.id}: {response.status_code}")
+                print(
+                    f"  Error fetching {label} for parent {parent.id}: {response.status_code}"
+                )
                 break
             items.extend(response.parsed.data)
             links = getattr(response.parsed, "links", None)
@@ -281,6 +422,7 @@ def _fetch_sub_resource_list(client: AuthenticatedClient, list_fn, parent_items:
 
 
 # --- Conversion helpers ---
+
 
 def service_to_writable_dict(item) -> dict:
     """Extract only writable attributes from a ServiceListDataItem."""
@@ -297,9 +439,15 @@ def service_to_writable_dict(item) -> dict:
         d["slack_channels"] = [ch.to_dict() for ch in attrs.slack_channels]
     if attrs.slack_aliases is not UNSET and attrs.slack_aliases is not None:
         d["slack_aliases"] = [a.to_dict() for a in attrs.slack_aliases]
-    if attrs.alert_broadcast_channel is not UNSET and attrs.alert_broadcast_channel is not None:
+    if (
+        attrs.alert_broadcast_channel is not UNSET
+        and attrs.alert_broadcast_channel is not None
+    ):
         d["alert_broadcast_channel"] = attrs.alert_broadcast_channel.to_dict()
-    if attrs.incident_broadcast_channel is not UNSET and attrs.incident_broadcast_channel is not None:
+    if (
+        attrs.incident_broadcast_channel is not UNSET
+        and attrs.incident_broadcast_channel is not None
+    ):
         d["incident_broadcast_channel"] = attrs.incident_broadcast_channel.to_dict()
 
     return d
@@ -311,7 +459,10 @@ def role_to_writable_dict(item) -> dict:
     # name and slug are always present on a Role response.
     d = {"name": attrs.name, "slug": attrs.slug}
 
-    if attrs.incident_permission_set_id is not UNSET and attrs.incident_permission_set_id is not None:
+    if (
+        attrs.incident_permission_set_id is not UNSET
+        and attrs.incident_permission_set_id is not None
+    ):
         d["incident_permission_set_id"] = attrs.incident_permission_set_id
 
     for field in _ROLE_PERMISSION_FIELDS:
@@ -338,9 +489,15 @@ def team_to_writable_dict(item) -> dict:
         d["slack_channels"] = [ch.to_dict() for ch in attrs.slack_channels]
     if attrs.slack_aliases is not UNSET and attrs.slack_aliases is not None:
         d["slack_aliases"] = [a.to_dict() for a in attrs.slack_aliases]
-    if attrs.alert_broadcast_channel is not UNSET and attrs.alert_broadcast_channel is not None:
+    if (
+        attrs.alert_broadcast_channel is not UNSET
+        and attrs.alert_broadcast_channel is not None
+    ):
         d["alert_broadcast_channel"] = attrs.alert_broadcast_channel.to_dict()
-    if attrs.incident_broadcast_channel is not UNSET and attrs.incident_broadcast_channel is not None:
+    if (
+        attrs.incident_broadcast_channel is not UNSET
+        and attrs.incident_broadcast_channel is not None
+    ):
         d["incident_broadcast_channel"] = attrs.incident_broadcast_channel.to_dict()
 
     return d
@@ -358,7 +515,11 @@ def alert_source_to_writable_dict(item) -> dict:
     # Strip read-only and None fields from urgency rule items.
     if d.get("alert_source_urgency_rules_attributes"):
         d["alert_source_urgency_rules_attributes"] = [
-            {k: v for k, v in rule.items() if k in _URGENCY_RULE_WRITABLE and v is not None}
+            {
+                k: v
+                for k, v in rule.items()
+                if k in _URGENCY_RULE_WRITABLE and v is not None
+            }
             for rule in d["alert_source_urgency_rules_attributes"]
         ]
     # Strip read-only fields from alert field items (keep only alert_field_id + template_body).
@@ -368,9 +529,12 @@ def alert_source_to_writable_dict(item) -> dict:
             for field in d["alert_source_fields_attributes"]
         ]
     # Strip read-only fields from alert template (keep only title, description, external_url).
-    if d.get("alert_template_attributes") and isinstance(d["alert_template_attributes"], dict):
+    if d.get("alert_template_attributes") and isinstance(
+        d["alert_template_attributes"], dict
+    ):
         d["alert_template_attributes"] = {
-            k: v for k, v in d["alert_template_attributes"].items()
+            k: v
+            for k, v in d["alert_template_attributes"].items()
             if k in _ALERT_TEMPLATE_WRITABLE
         }
     return d
@@ -405,7 +569,7 @@ def _generic_to_writable_dict(item, read_only: set | None = None) -> dict:
     None values are removed so the resulting dict stays compact.
     """
     d = item.attributes.to_dict()
-    for key in (read_only if read_only is not None else _COMMON_READ_ONLY):
+    for key in read_only if read_only is not None else _COMMON_READ_ONLY:
         d.pop(key, None)
     return {k: v for k, v in d.items() if v is not None}
 
@@ -416,6 +580,21 @@ def workflow_to_writable_dict(item) -> dict:
     for key in _WORKFLOW_READ_ONLY:
         d.pop(key, None)
     return {k: v for k, v in d.items() if v is not None}
+
+
+def functionality_to_writable_dict(item) -> dict:
+    """Extract only writable attributes from a FunctionalityListDataItem."""
+    return _generic_to_writable_dict(item, _FUNCTIONALITY_READ_ONLY)
+
+
+def status_page_to_writable_dict(item) -> dict:
+    """Extract only writable attributes from a StatusPageListDataItem."""
+    return _generic_to_writable_dict(item, _STATUS_PAGE_READ_ONLY)
+
+
+def status_page_template_to_writable_dict(item) -> dict:
+    """Extract only writable attributes from a StatusPageTemplateListDataItem."""
+    return _generic_to_writable_dict(item, _STATUS_PAGE_TEMPLATE_READ_ONLY)
 
 
 # --- Report field specs ---
@@ -430,6 +609,7 @@ def workflow_to_writable_dict(item) -> dict:
 # All subsequent fields are printed indented with aligned labels.
 # To add a new field, append a tuple here.
 
+
 def _resolve_service_names(ids, id_to_name: dict) -> str:
     if not ids or ids is UNSET:
         return "(none)"
@@ -437,14 +617,17 @@ def _resolve_service_names(ids, id_to_name: dict) -> str:
 
 
 SERVICE_REPORT_FIELDS = [
-    ("Name",         lambda item, ctx: item.attributes.name),
-    ("ID",           lambda item, ctx: item.id),
-    ("Dependencies", lambda item, ctx: _resolve_service_names(
-        item.attributes.service_ids
-        if item.attributes.service_ids not in (None, UNSET)
-        else [],
-        ctx["id_to_name"],
-    )),
+    ("Name", lambda item, ctx: item.attributes.name),
+    ("ID", lambda item, ctx: item.id),
+    (
+        "Dependencies",
+        lambda item, ctx: _resolve_service_names(
+            item.attributes.service_ids
+            if item.attributes.service_ids not in (None, UNSET)
+            else [],
+            ctx["id_to_name"],
+        ),
+    ),
 ]
 
 ROLE_REPORT_FIELDS = [
@@ -457,27 +640,85 @@ TEAM_REPORT_FIELDS = [
     ("Slug", lambda item, ctx: item.attributes.slug),
 ]
 
+FUNCTIONALITY_REPORT_FIELDS = [
+    ("Name", lambda item, ctx: item.attributes.name),
+    ("ID", lambda item, ctx: item.id),
+    (
+        "Description",
+        lambda item, ctx: (
+            item.attributes.description
+            if item.attributes.description not in (None, UNSET)
+            else "(none)"
+        ),
+    ),
+]
+
+STATUS_PAGE_REPORT_FIELDS = [
+    ("Title", lambda item, ctx: item.attributes.title),
+    ("ID", lambda item, ctx: item.id),
+    (
+        "Enabled",
+        lambda item, ctx: (
+            item.attributes.enabled
+            if item.attributes.enabled is not UNSET
+            else "(unset)"
+        ),
+    ),
+    (
+        "Public",
+        lambda item, ctx: (
+            item.attributes.public if item.attributes.public is not UNSET else "(unset)"
+        ),
+    ),
+]
+
 ALERT_SOURCE_REPORT_FIELDS = [
-    ("Name",        lambda item, ctx: item.attributes.name),
-    ("ID",          lambda item, ctx: item.id),
-    ("Source Type", lambda item, ctx: item.attributes.source_type if item.attributes.source_type is not UNSET else "(none)"),
-    ("Status",      lambda item, ctx: item.attributes.status),
+    ("Name", lambda item, ctx: item.attributes.name),
+    ("ID", lambda item, ctx: item.id),
+    (
+        "Source Type",
+        lambda item, ctx: (
+            item.attributes.source_type
+            if item.attributes.source_type is not UNSET
+            else "(none)"
+        ),
+    ),
+    ("Status", lambda item, ctx: item.attributes.status),
 ]
 
 ALERT_ROUTE_REPORT_FIELDS = [
-    ("Name",    lambda item, ctx: item.attributes.name),
-    ("ID",      lambda item, ctx: item.id),
-    ("Enabled", lambda item, ctx: item.attributes.enabled if item.attributes.enabled is not UNSET else "(unset)"),
-    ("Sources", lambda item, ctx: ", ".join(str(sid) for sid in item.attributes.alerts_source_ids)
-                                  if item.attributes.alerts_source_ids else "(none)"),
+    ("Name", lambda item, ctx: item.attributes.name),
+    ("ID", lambda item, ctx: item.id),
+    (
+        "Enabled",
+        lambda item, ctx: (
+            item.attributes.enabled
+            if item.attributes.enabled is not UNSET
+            else "(unset)"
+        ),
+    ),
+    (
+        "Sources",
+        lambda item, ctx: (
+            ", ".join(str(sid) for sid in item.attributes.alerts_source_ids)
+            if item.attributes.alerts_source_ids
+            else "(none)"
+        ),
+    ),
 ]
 
 ESCALATION_POLICY_REPORT_FIELDS = [
-    ("Name",         lambda item, ctx: item.attributes.name),
-    ("ID",           lambda item, ctx: item.id),
+    ("Name", lambda item, ctx: item.attributes.name),
+    ("ID", lambda item, ctx: item.id),
     ("Repeat Count", lambda item, ctx: item.attributes.repeat_count),
-    ("Description",  lambda item, ctx: item.attributes.description
-                                       if item.attributes.description not in (None, UNSET) else "(none)"),
+    (
+        "Description",
+        lambda item, ctx: (
+            item.attributes.description
+            if item.attributes.description not in (None, UNSET)
+            else "(none)"
+        ),
+    ),
 ]
 
 
@@ -502,6 +743,12 @@ def print_report(client: AuthenticatedClient) -> None:
     role_items = fetch_all_roles(client)
     print("Fetching all teams...")
     team_items = fetch_all_teams(client)
+    print("Fetching all functionalities...")
+    functionality_items = _fetch_paginated_list(
+        client, list_functionalities, "functionalities"
+    )
+    print("Fetching all status pages...")
+    status_page_items = _fetch_paginated_list(client, list_status_pages, "status pages")
     print("Fetching all alert sources...")
     alert_source_items = fetch_all_alert_sources(client)
     print("Fetching all alert routes...")
@@ -515,12 +762,28 @@ def print_report(client: AuthenticatedClient) -> None:
     _print_section("Services", service_items, SERVICE_REPORT_FIELDS, context)
     _print_section("Roles", role_items, ROLE_REPORT_FIELDS, context)
     _print_section("Teams", team_items, TEAM_REPORT_FIELDS, context)
-    _print_section("Alert Sources", alert_source_items, ALERT_SOURCE_REPORT_FIELDS, context)
-    _print_section("Alert Routes", alert_route_items, ALERT_ROUTE_REPORT_FIELDS, context)
-    _print_section("Escalation Policies", escalation_policy_items, ESCALATION_POLICY_REPORT_FIELDS, context)
+    _print_section(
+        "Functionalities", functionality_items, FUNCTIONALITY_REPORT_FIELDS, context
+    )
+    _print_section(
+        "Status Pages", status_page_items, STATUS_PAGE_REPORT_FIELDS, context
+    )
+    _print_section(
+        "Alert Sources", alert_source_items, ALERT_SOURCE_REPORT_FIELDS, context
+    )
+    _print_section(
+        "Alert Routes", alert_route_items, ALERT_ROUTE_REPORT_FIELDS, context
+    )
+    _print_section(
+        "Escalation Policies",
+        escalation_policy_items,
+        ESCALATION_POLICY_REPORT_FIELDS,
+        context,
+    )
 
 
 # --- Export ---
+
 
 def export_to_data_file(client: AuthenticatedClient) -> None:
     """Fetch all resources from Rootly and overwrite data.py."""
@@ -561,32 +824,107 @@ def export_to_data_file(client: AuthenticatedClient) -> None:
 
     print("Fetching all escalation policies...")
     escalation_policy_items = fetch_all_escalation_policies(client)
-    escalation_policies = [escalation_policy_to_writable_dict(p) for p in escalation_policy_items]
+    escalation_policies = [
+        escalation_policy_to_writable_dict(p) for p in escalation_policy_items
+    ]
     print(f"  Fetched {len(escalation_policies)} escalation policies.")
 
     # --- newly covered resources ---
     _ro = _COMMON_READ_ONLY | _SLUG_FIELD  # strip created_at/updated_at/slug for most
 
-    environments          = _fetch_and_convert("environments",           list_environments,           lambda i: _generic_to_writable_dict(i, _ro))
-    severities            = _fetch_and_convert("severities",             list_severities,             lambda i: _generic_to_writable_dict(i, _ro))
-    functionalities       = _fetch_and_convert("functionalities",        list_functionalities,        lambda i: _generic_to_writable_dict(i, _ro))
-    causes                = _fetch_and_convert("causes",                 list_causes,                 lambda i: _generic_to_writable_dict(i, _ro))
-    incident_types        = _fetch_and_convert("incident types",         list_incident_types,         lambda i: _generic_to_writable_dict(i, _ro))
-    incident_roles        = _fetch_and_convert("incident roles",         list_incident_roles,         lambda i: _generic_to_writable_dict(i, _ro))
-    schedules             = _fetch_and_convert("schedules",              list_schedules,              lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY))
-    playbooks             = _fetch_and_convert("playbooks",              list_playbooks,              lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY))
-    webhooks_endpoints    = _fetch_and_convert("webhooks endpoints",     list_webhooks_endpoints,     lambda i: _generic_to_writable_dict(i, _WEBHOOK_READ_ONLY))
-    secrets               = _fetch_and_convert("secrets",               list_secrets,               lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY))
-    status_pages          = _fetch_and_convert("status pages",           list_status_pages,           lambda i: _generic_to_writable_dict(i, _ro))
-    form_fields           = _fetch_and_convert("form fields",            list_form_fields,            lambda i: _generic_to_writable_dict(i, _ro))
-    custom_forms          = _fetch_and_convert("custom forms",           list_custom_forms,           lambda i: _generic_to_writable_dict(i, _ro))
-    incident_permission_sets = _fetch_and_convert("incident permission sets", list_incident_permission_sets, lambda i: _generic_to_writable_dict(i, _ro))
-    workflows             = _fetch_and_convert("workflows",              list_workflows,              workflow_to_writable_dict)
-    workflow_groups       = _fetch_and_convert("workflow groups",        list_workflow_groups,        lambda i: _generic_to_writable_dict(i, _ro))
-    postmortem_templates  = _fetch_and_convert("post-mortem templates",  list_postmortem_templates,   lambda i: _generic_to_writable_dict(i, _POST_MORTEM_READ_ONLY))
-    retrospective_processes = _fetch_and_convert("retrospective processes", list_retrospective_processes, lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY))
-    retrospective_configurations = _fetch_and_convert("retrospective configurations", list_retrospective_configurations, lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY))
-    dashboards            = _fetch_and_convert("dashboards",             list_dashboards,             lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY))
+    environments = _fetch_and_convert(
+        "environments", list_environments, lambda i: _generic_to_writable_dict(i, _ro)
+    )
+    severities = _fetch_and_convert(
+        "severities", list_severities, lambda i: _generic_to_writable_dict(i, _ro)
+    )
+    functionalities = _fetch_and_convert(
+        "functionalities", list_functionalities, functionality_to_writable_dict
+    )
+    causes = _fetch_and_convert(
+        "causes", list_causes, lambda i: _generic_to_writable_dict(i, _ro)
+    )
+    incident_types = _fetch_and_convert(
+        "incident types",
+        list_incident_types,
+        lambda i: _generic_to_writable_dict(i, _ro),
+    )
+    incident_roles = _fetch_and_convert(
+        "incident roles",
+        list_incident_roles,
+        lambda i: _generic_to_writable_dict(i, _ro),
+    )
+    schedules = _fetch_and_convert(
+        "schedules",
+        list_schedules,
+        lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY),
+    )
+    playbooks = _fetch_and_convert(
+        "playbooks",
+        list_playbooks,
+        lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY),
+    )
+    webhooks_endpoints = _fetch_and_convert(
+        "webhooks endpoints",
+        list_webhooks_endpoints,
+        lambda i: _generic_to_writable_dict(i, _WEBHOOK_READ_ONLY),
+    )
+    secrets = _fetch_and_convert(
+        "secrets",
+        list_secrets,
+        lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY),
+    )
+    print("Fetching all status pages...")
+    status_page_items = _fetch_paginated_list(client, list_status_pages, "status pages")
+    status_pages = [status_page_to_writable_dict(i) for i in status_page_items]
+    print(f"  Fetched {len(status_pages)} status pages.")
+    print("Fetching all status page templates...")
+    status_page_template_items = _fetch_sub_resource_list(
+        client, list_status_page_templates, status_page_items, "status page templates"
+    )
+    status_page_templates = [
+        status_page_template_to_writable_dict(i) for i in status_page_template_items
+    ]
+    print(f"  Fetched {len(status_page_templates)} status page templates.")
+    form_fields = _fetch_and_convert(
+        "form fields", list_form_fields, lambda i: _generic_to_writable_dict(i, _ro)
+    )
+    custom_forms = _fetch_and_convert(
+        "custom forms", list_custom_forms, lambda i: _generic_to_writable_dict(i, _ro)
+    )
+    incident_permission_sets = _fetch_and_convert(
+        "incident permission sets",
+        list_incident_permission_sets,
+        lambda i: _generic_to_writable_dict(i, _ro),
+    )
+    workflows = _fetch_and_convert(
+        "workflows", list_workflows, workflow_to_writable_dict
+    )
+    workflow_groups = _fetch_and_convert(
+        "workflow groups",
+        list_workflow_groups,
+        lambda i: _generic_to_writable_dict(i, _ro),
+    )
+    postmortem_templates = _fetch_and_convert(
+        "post-mortem templates",
+        list_postmortem_templates,
+        lambda i: _generic_to_writable_dict(i, _POST_MORTEM_READ_ONLY),
+    )
+    retrospective_processes = _fetch_and_convert(
+        "retrospective processes",
+        list_retrospective_processes,
+        lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY),
+    )
+    retrospective_configurations = _fetch_and_convert(
+        "retrospective configurations",
+        list_retrospective_configurations,
+        lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY),
+    )
+    dashboards = _fetch_and_convert(
+        "dashboards",
+        list_dashboards,
+        lambda i: _generic_to_writable_dict(i, _COMMON_READ_ONLY),
+    )
 
     def fmt(obj):
         return pprint.pformat(obj, indent=4, sort_dicts=False)
@@ -609,6 +947,7 @@ def export_to_data_file(client: AuthenticatedClient) -> None:
         f"WEBHOOKS_ENDPOINTS = {fmt(webhooks_endpoints)}\n\n"
         f"SECRETS = {fmt(secrets)}\n\n"
         f"STATUS_PAGES = {fmt(status_pages)}\n\n"
+        f"STATUS_PAGE_TEMPLATES = {fmt(status_page_templates)}\n\n"
         f"FORM_FIELDS = {fmt(form_fields)}\n\n"
         f"CUSTOM_FORMS = {fmt(custom_forms)}\n\n"
         f"INCIDENT_PERMISSION_SETS = {fmt(incident_permission_sets)}\n\n"
@@ -635,6 +974,7 @@ def export_to_data_file(client: AuthenticatedClient) -> None:
         "webhooks_endpoints": len(webhooks_endpoints),
         "secrets": len(secrets),
         "status_pages": len(status_pages),
+        "status_page_templates": len(status_page_templates),
         "form_fields": len(form_fields),
         "custom_forms": len(custom_forms),
         "incident_permission_sets": len(incident_permission_sets),
@@ -656,6 +996,7 @@ def export_to_data_file(client: AuthenticatedClient) -> None:
 
 
 # --- Find helpers (used by ensure functions) ---
+
 
 def find_existing_service(client: AuthenticatedClient, name: str) -> str | None:
     """Find a service by name and return its id, or None if not found."""
@@ -706,13 +1047,15 @@ def find_existing_alert_route(client: AuthenticatedClient, name: str) -> str | N
     response = list_alert_routes.sync_detailed(client=client, filtername=name)
     if response.status_code != 200 or response.parsed is None:
         return None
-    for r in response.parsed.data:
+    for r in getattr(response.parsed, "data", []):
         if r.attributes.name == name:
             return r.id
     return None
 
 
-def find_existing_escalation_policy(client: AuthenticatedClient, name: str) -> str | None:
+def find_existing_escalation_policy(
+    client: AuthenticatedClient, name: str
+) -> str | None:
     """Find an escalation policy by name and return its id, or None if not found."""
     response = list_escalation_policies.sync_detailed(client=client, filtername=name)
     if response.status_code != 200 or response.parsed is None:
@@ -723,7 +1066,54 @@ def find_existing_escalation_policy(client: AuthenticatedClient, name: str) -> s
     return None
 
 
+def _find_existing_by_attribute(
+    client: AuthenticatedClient, list_fn, attr_name: str, attr_value: str
+) -> str | None:
+    """Find a top-level resource by an exact attribute value."""
+    for item in _fetch_paginated_list(client, list_fn, attr_value):
+        if getattr(item.attributes, attr_name, None) == attr_value:
+            return item.id
+    return None
+
+
+def find_existing_functionality(client: AuthenticatedClient, name: str) -> str | None:
+    """Find a functionality by name and return its id, or None if not found."""
+    return _find_existing_by_attribute(client, list_functionalities, "name", name)
+
+
+def find_existing_status_page(client: AuthenticatedClient, title: str) -> str | None:
+    """Find a status page by title and return its id, or None if not found."""
+    return _find_existing_by_attribute(client, list_status_pages, "title", title)
+
+
+def find_existing_status_page_template(
+    client: AuthenticatedClient, status_page_id: str, title: str
+) -> str | None:
+    """Find a status page template by title within a status page."""
+    page = 1
+    while True:
+        response = list_status_page_templates.sync_detailed(
+            status_page_id, client=client, pagenumber=page, pagesize=100
+        )
+        if response.status_code != 200 or response.parsed is None:
+            return None
+        for template in response.parsed.data:
+            if template.attributes.title == title:
+                return template.id
+        links = getattr(response.parsed, "links", None)
+        if links is None or links.next_ is None:
+            return None
+        page += 1
+
+
+def _created_resource_id(parsed) -> str:
+    """Safely extract an id from a create response parsed union."""
+    data = getattr(parsed, "data", None)
+    return str(getattr(data, "id", "unknown"))
+
+
 # --- Ensure (idempotent create/update) ---
+
 
 def ensure_service(client: AuthenticatedClient, service_dict: dict) -> None:
     """Create a service if it doesn't exist, or update it if it does."""
@@ -731,12 +1121,14 @@ def ensure_service(client: AuthenticatedClient, service_dict: dict) -> None:
     existing_id = find_existing_service(client, name)
 
     if existing_id is not None:
-        payload = UpdateService.from_dict({
-            "data": {
-                "type": "services",
-                "attributes": service_dict,
+        payload = UpdateService.from_dict(
+            {
+                "data": {
+                    "type": "services",
+                    "attributes": service_dict,
+                }
             }
-        })
+        )
         response = update_service.sync_detailed(
             existing_id, client=client, body=payload
         )
@@ -747,16 +1139,19 @@ def ensure_service(client: AuthenticatedClient, service_dict: dict) -> None:
             if response.parsed:
                 print(f"  Error: {response.parsed}")
     else:
-        payload = NewService.from_dict({
-            "data": {
-                "type": "services",
-                "attributes": service_dict,
+        payload = NewService.from_dict(
+            {
+                "data": {
+                    "type": "services",
+                    "attributes": service_dict,
+                }
             }
-        })
+        )
         response = create_service.sync_detailed(client=client, body=payload)
         if response.status_code == 201:
-            result = response.parsed
-            print(f"Created service: {name} (id: {result.data.id})")
+            print(
+                f"Created service: {name} (id: {_created_resource_id(response.parsed)})"
+            )
         else:
             print(f"Failed to create service '{name}': {response.status_code}")
             if response.parsed:
@@ -772,15 +1167,15 @@ def ensure_role(client: AuthenticatedClient, role_dict: dict) -> None:
     existing_id = find_existing_role(client, name)
 
     if existing_id is not None:
-        payload = UpdateRole.from_dict({
-            "data": {
-                "type": "roles",
-                "attributes": role_dict,
+        payload = UpdateRole.from_dict(
+            {
+                "data": {
+                    "type": "roles",
+                    "attributes": role_dict,
+                }
             }
-        })
-        response = update_role.sync_detailed(
-            existing_id, client=client, body=payload
         )
+        response = update_role.sync_detailed(existing_id, client=client, body=payload)
         if response.status_code == 200:
             print(f"Updated role: {name} (id: {existing_id})")
         elif response.status_code == 404:
@@ -791,16 +1186,17 @@ def ensure_role(client: AuthenticatedClient, role_dict: dict) -> None:
             if response.parsed:
                 print(f"  Error: {response.parsed}")
     else:
-        payload = NewRole.from_dict({
-            "data": {
-                "type": "roles",
-                "attributes": role_dict,
+        payload = NewRole.from_dict(
+            {
+                "data": {
+                    "type": "roles",
+                    "attributes": role_dict,
+                }
             }
-        })
+        )
         response = create_role.sync_detailed(client=client, body=payload)
         if response.status_code == 201:
-            result = response.parsed
-            print(f"Created role: {name} (id: {result.data.id})")
+            print(f"Created role: {name} (id: {_created_resource_id(response.parsed)})")
         else:
             print(f"Failed to create role '{name}': {response.status_code}")
             if response.parsed:
@@ -813,15 +1209,15 @@ def ensure_team(client: AuthenticatedClient, team_dict: dict) -> None:
     existing_id = find_existing_team(client, name)
 
     if existing_id is not None:
-        payload = UpdateTeam.from_dict({
-            "data": {
-                "type": "groups",
-                "attributes": team_dict,
+        payload = UpdateTeam.from_dict(
+            {
+                "data": {
+                    "type": "groups",
+                    "attributes": team_dict,
+                }
             }
-        })
-        response = update_team.sync_detailed(
-            existing_id, client=client, body=payload
         )
+        response = update_team.sync_detailed(existing_id, client=client, body=payload)
         if response.status_code == 200:
             print(f"Updated team: {name} (id: {existing_id})")
         else:
@@ -829,16 +1225,17 @@ def ensure_team(client: AuthenticatedClient, team_dict: dict) -> None:
             if response.parsed:
                 print(f"  Error: {response.parsed}")
     else:
-        payload = NewTeam.from_dict({
-            "data": {
-                "type": "groups",
-                "attributes": team_dict,
+        payload = NewTeam.from_dict(
+            {
+                "data": {
+                    "type": "groups",
+                    "attributes": team_dict,
+                }
             }
-        })
+        )
         response = create_team.sync_detailed(client=client, body=payload)
         if response.status_code == 201:
-            result = response.parsed
-            print(f"Created team: {name} (id: {result.data.id})")
+            print(f"Created team: {name} (id: {_created_resource_id(response.parsed)})")
         else:
             print(f"Failed to create team '{name}': {response.status_code}")
             if response.parsed:
@@ -851,12 +1248,14 @@ def ensure_alert_source(client: AuthenticatedClient, alert_source_dict: dict) ->
     existing_id = find_existing_alert_source(client, name)
 
     if existing_id is not None:
-        payload = UpdateAlertsSource.from_dict({
-            "data": {
-                "type": "alert_sources",
-                "attributes": alert_source_dict,
+        payload = UpdateAlertsSource.from_dict(
+            {
+                "data": {
+                    "type": "alert_sources",
+                    "attributes": alert_source_dict,
+                }
             }
-        })
+        )
         response = update_alerts_source.sync_detailed(
             existing_id, client=client, body=payload
         )
@@ -867,16 +1266,19 @@ def ensure_alert_source(client: AuthenticatedClient, alert_source_dict: dict) ->
             if response.parsed:
                 print(f"  Error: {response.parsed}")
     else:
-        payload = NewAlertsSource.from_dict({
-            "data": {
-                "type": "alert_sources",
-                "attributes": alert_source_dict,
+        payload = NewAlertsSource.from_dict(
+            {
+                "data": {
+                    "type": "alert_sources",
+                    "attributes": alert_source_dict,
+                }
             }
-        })
+        )
         response = create_alerts_source.sync_detailed(client=client, body=payload)
         if response.status_code == 201:
-            result = response.parsed
-            print(f"Created alert source: {name} (id: {result.data.id})")
+            print(
+                f"Created alert source: {name} (id: {_created_resource_id(response.parsed)})"
+            )
         else:
             print(f"Failed to create alert source '{name}': {response.status_code}")
             if response.parsed:
@@ -889,12 +1291,14 @@ def ensure_alert_route(client: AuthenticatedClient, alert_route_dict: dict) -> N
     existing_id = find_existing_alert_route(client, name)
 
     if existing_id is not None:
-        payload = UpdateAlertRoute.from_dict({
-            "data": {
-                "type": "alert_routes",
-                "attributes": alert_route_dict,
+        payload = UpdateAlertRoute.from_dict(
+            {
+                "data": {
+                    "type": "alert_routes",
+                    "attributes": alert_route_dict,
+                }
             }
-        })
+        )
         response = update_alert_route.sync_detailed(
             existing_id, client=client, body=payload
         )
@@ -905,16 +1309,19 @@ def ensure_alert_route(client: AuthenticatedClient, alert_route_dict: dict) -> N
             if response.parsed:
                 print(f"  Error: {response.parsed}")
     else:
-        payload = NewAlertRoute.from_dict({
-            "data": {
-                "type": "alert_routes",
-                "attributes": alert_route_dict,
+        payload = NewAlertRoute.from_dict(
+            {
+                "data": {
+                    "type": "alert_routes",
+                    "attributes": alert_route_dict,
+                }
             }
-        })
+        )
         response = create_alert_route.sync_detailed(client=client, body=payload)
         if response.status_code == 201:
-            result = response.parsed
-            print(f"Created alert route: {name} (id: {result.data.id})")
+            print(
+                f"Created alert route: {name} (id: {_created_resource_id(response.parsed)})"
+            )
         else:
             print(f"Failed to create alert route '{name}': {response.status_code}")
             if response.parsed:
@@ -927,66 +1334,238 @@ def ensure_escalation_policy(client: AuthenticatedClient, policy_dict: dict) -> 
     existing_id = find_existing_escalation_policy(client, name)
 
     if existing_id is not None:
-        payload = UpdateEscalationPolicy.from_dict({
-            "data": {
-                "type": "escalation_policies",
-                "attributes": policy_dict,
+        payload = UpdateEscalationPolicy.from_dict(
+            {
+                "data": {
+                    "type": "escalation_policies",
+                    "attributes": policy_dict,
+                }
             }
-        })
+        )
         response = update_escalation_policy.sync_detailed(
             existing_id, client=client, body=payload
         )
         if response.status_code == 200:
             print(f"Updated escalation policy: {name} (id: {existing_id})")
         else:
-            print(f"Failed to update escalation policy '{name}': {response.status_code}")
+            print(
+                f"Failed to update escalation policy '{name}': {response.status_code}"
+            )
             if response.parsed:
                 print(f"  Error: {response.parsed}")
     else:
-        payload = NewEscalationPolicy.from_dict({
-            "data": {
-                "type": "escalation_policies",
-                "attributes": policy_dict,
+        payload = NewEscalationPolicy.from_dict(
+            {
+                "data": {
+                    "type": "escalation_policies",
+                    "attributes": policy_dict,
+                }
             }
-        })
+        )
         response = create_escalation_policy.sync_detailed(client=client, body=payload)
         if response.status_code == 201:
-            result = response.parsed
-            print(f"Created escalation policy: {name} (id: {result.data.id})")
+            print(
+                f"Created escalation policy: {name} (id: {_created_resource_id(response.parsed)})"
+            )
         else:
-            print(f"Failed to create escalation policy '{name}': {response.status_code}")
+            print(
+                f"Failed to create escalation policy '{name}': {response.status_code}"
+            )
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+
+
+def ensure_functionality(client: AuthenticatedClient, functionality_dict: dict) -> None:
+    """Create a functionality if it doesn't exist, or update it if it does."""
+    name = functionality_dict["name"]
+    existing_id = find_existing_functionality(client, name)
+
+    if existing_id is not None:
+        payload = UpdateFunctionality.from_dict(
+            {
+                "data": {
+                    "type": "functionalities",
+                    "attributes": functionality_dict,
+                }
+            }
+        )
+        response = update_functionality.sync_detailed(
+            existing_id, client=client, body=payload
+        )
+        if response.status_code == 200:
+            print(f"Updated functionality: {name} (id: {existing_id})")
+        else:
+            print(f"Failed to update functionality '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+    else:
+        payload = NewFunctionality.from_dict(
+            {
+                "data": {
+                    "type": "functionalities",
+                    "attributes": functionality_dict,
+                }
+            }
+        )
+        response = create_functionality.sync_detailed(client=client, body=payload)
+        if response.status_code == 201:
+            print(
+                f"Created functionality: {name} (id: {_created_resource_id(response.parsed)})"
+            )
+        else:
+            print(f"Failed to create functionality '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+
+
+def ensure_status_page(client: AuthenticatedClient, status_page_dict: dict) -> None:
+    """Create a status page if it doesn't exist, or update it if it does."""
+    title = status_page_dict["title"]
+    existing_id = find_existing_status_page(client, title)
+
+    if existing_id is not None:
+        payload = UpdateStatusPage.from_dict(
+            {
+                "data": {
+                    "type": "status_pages",
+                    "attributes": status_page_dict,
+                }
+            }
+        )
+        response = update_status_page.sync_detailed(
+            existing_id, client=client, body=payload
+        )
+        if response.status_code == 200:
+            print(f"Updated status page: {title} (id: {existing_id})")
+        else:
+            print(f"Failed to update status page '{title}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+    else:
+        payload = NewStatusPage.from_dict(
+            {
+                "data": {
+                    "type": "status_pages",
+                    "attributes": status_page_dict,
+                }
+            }
+        )
+        response = create_status_page.sync_detailed(client=client, body=payload)
+        if response.status_code == 201:
+            print(
+                f"Created status page: {title} (id: {_created_resource_id(response.parsed)})"
+            )
+        else:
+            print(f"Failed to create status page '{title}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+
+
+def ensure_status_page_template(
+    client: AuthenticatedClient, template_dict: dict
+) -> None:
+    """Create a status page template if it doesn't exist, or update it if it does."""
+    title = template_dict["title"]
+    status_page_id = template_dict["status_page_id"]
+    existing_id = find_existing_status_page_template(client, status_page_id, title)
+
+    if existing_id is not None:
+        update_attrs = dict(template_dict)
+        update_attrs.pop("status_page_id", None)
+        payload = UpdateStatusPageTemplate.from_dict(
+            {
+                "data": {
+                    "type": "status_page_templates",
+                    "attributes": update_attrs,
+                }
+            }
+        )
+        response = update_status_page_template.sync_detailed(
+            existing_id, client=client, body=cast(Any, payload)
+        )
+        if response.status_code == 200:
+            print(f"Updated status page template: {title} (id: {existing_id})")
+        else:
+            print(
+                f"Failed to update status page template '{title}': {response.status_code}"
+            )
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+    else:
+        payload = NewStatusPageTemplate.from_dict(
+            {
+                "data": {
+                    "type": "status_page_templates",
+                    "attributes": template_dict,
+                }
+            }
+        )
+        response = create_status_page_template.sync_detailed(
+            status_page_id, client=client, body=cast(Any, payload)
+        )
+        if response.status_code == 201:
+            print(
+                f"Created status page template: {title} (id: {_created_resource_id(response.parsed)})"
+            )
+        else:
+            print(
+                f"Failed to create status page template '{title}': {response.status_code}"
+            )
             if response.parsed:
                 print(f"  Error: {response.parsed}")
 
 
 # --- Import ---
 
-def load_data_file(path: str) -> tuple[list, list, list, list, list, list]:
-    """Dynamically load all resource lists from a Python data file.
 
-    Returns the six resource lists that ``run_import`` manages.  Additional
-    variables written by ``--export`` (ENVIRONMENTS, WORKFLOWS, etc.) are
-    present in the module but not returned here; they serve as a read-only
-    reference snapshot.
-    """
+def load_data_file(
+    path: str,
+) -> tuple[list, list, list, list, list, list, list, list, list]:
+    """Dynamically load all managed resource lists from a Python data file."""
     abs_path = os.path.abspath(path)
     spec = importlib.util.spec_from_file_location("_rootly_data", abs_path)
+    if spec is None or spec.loader is None:
+        raise ValueError(f"Could not load data file: {path}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     teams = getattr(module, "TEAMS", [])
+    functionalities = getattr(module, "FUNCTIONALITIES", [])
+    status_pages = getattr(module, "STATUS_PAGES", [])
+    status_page_templates = getattr(module, "STATUS_PAGE_TEMPLATES", [])
     alert_sources = getattr(module, "ALERT_SOURCES", [])
     alert_routes = getattr(module, "ALERT_ROUTES", [])
     escalation_policies = getattr(module, "ESCALATION_POLICIES", [])
-    return module.SERVICES, module.ROLES, teams, alert_sources, alert_routes, escalation_policies
+    return (
+        module.SERVICES,
+        module.ROLES,
+        teams,
+        functionalities,
+        status_pages,
+        status_page_templates,
+        alert_sources,
+        alert_routes,
+        escalation_policies,
+    )
 
 
 def run_import(client: AuthenticatedClient, path: str) -> None:
     """Load definitions from a file and ensure them in Rootly."""
-    services, roles, teams, alert_sources, alert_routes, escalation_policies = load_data_file(path)
+    (
+        services,
+        roles,
+        teams,
+        functionalities,
+        status_pages,
+        status_page_templates,
+        alert_sources,
+        alert_routes,
+        escalation_policies,
+    ) = load_data_file(path)
     print(
         f"Loaded {len(services)} services, {len(roles)} roles, {len(teams)} teams, "
-        f"{len(alert_sources)} alert sources, {len(alert_routes)} alert routes, and "
-        f"{len(escalation_policies)} escalation policies from {path}"
+        f"{len(functionalities)} functionalities, {len(status_pages)} status pages, "
+        f"{len(status_page_templates)} status page templates, {len(alert_sources)} alert sources, "
+        f"{len(alert_routes)} alert routes, and {len(escalation_policies)} escalation policies from {path}"
     )
 
     print("\nEnsuring services...")
@@ -1000,6 +1579,18 @@ def run_import(client: AuthenticatedClient, path: str) -> None:
     print("\nEnsuring teams...")
     for team_dict in teams:
         ensure_team(client, team_dict)
+
+    print("\nEnsuring functionalities...")
+    for functionality_dict in functionalities:
+        ensure_functionality(client, functionality_dict)
+
+    print("\nEnsuring status pages...")
+    for status_page_dict in status_pages:
+        ensure_status_page(client, status_page_dict)
+
+    print("\nEnsuring status page templates...")
+    for template_dict in status_page_templates:
+        ensure_status_page_template(client, template_dict)
 
     print("\nEnsuring alert sources...")
     for alert_source_dict in alert_sources:
@@ -1019,60 +1610,60 @@ def run_import(client: AuthenticatedClient, path: str) -> None:
 # Maps each resource kind to its Pulumi provider type string.
 _PULUMI_TYPE = {
     # --- already-managed resources ---
-    "alert_source":                     "rootly:index/alertsSource:AlertsSource",
-    "alert_route":                      "rootly:index/alertRoute:AlertRoute",
-    "service":                          "rootly:index/service:Service",
-    "role":                             "rootly:index/role:Role",
-    "team":                             "rootly:index/team:Team",
-    "escalation_policy":                "rootly:index/escalationPolicy:EscalationPolicy",
+    "alert_source": "rootly:index/alertsSource:AlertsSource",
+    "alert_route": "rootly:index/alertRoute:AlertRoute",
+    "service": "rootly:index/service:Service",
+    "role": "rootly:index/role:Role",
+    "team": "rootly:index/team:Team",
+    "escalation_policy": "rootly:index/escalationPolicy:EscalationPolicy",
     # --- incident / on-call configuration ---
-    "environment":                      "rootly:index/environment:Environment",
-    "severity":                         "rootly:index/severity:Severity",
-    "functionality":                    "rootly:index/functionality:Functionality",
-    "cause":                            "rootly:index/cause:Cause",
-    "incident_type":                    "rootly:index/incidentType:IncidentType",
-    "incident_role":                    "rootly:index/incidentRole:IncidentRole",
-    "incident_role_task":               "rootly:index/incidentRoleTask:IncidentRoleTask",
-    "incident_permission_set":          "rootly:index/incidentPermissionSet:IncidentPermissionSet",
-    "incident_permission_set_boolean":  "rootly:index/incidentPermissionSetBoolean:IncidentPermissionSetBoolean",
+    "environment": "rootly:index/environment:Environment",
+    "severity": "rootly:index/severity:Severity",
+    "functionality": "rootly:index/functionality:Functionality",
+    "cause": "rootly:index/cause:Cause",
+    "incident_type": "rootly:index/incidentType:IncidentType",
+    "incident_role": "rootly:index/incidentRole:IncidentRole",
+    "incident_role_task": "rootly:index/incidentRoleTask:IncidentRoleTask",
+    "incident_permission_set": "rootly:index/incidentPermissionSet:IncidentPermissionSet",
+    "incident_permission_set_boolean": "rootly:index/incidentPermissionSetBoolean:IncidentPermissionSetBoolean",
     "incident_permission_set_resource": "rootly:index/incidentPermissionSetResource:IncidentPermissionSetResource",
     # --- scheduling ---
-    "schedule":                         "rootly:index/schedule:Schedule",
-    "schedule_rotation":                "rootly:index/scheduleRotation:ScheduleRotation",
-    "schedule_rotation_active_time":    "rootly:index/scheduleRotationActiveTime:ScheduleRotationActiveTime",
-    "schedule_rotation_user":           "rootly:index/scheduleRotationUser:ScheduleRotationUser",
+    "schedule": "rootly:index/schedule:Schedule",
+    "schedule_rotation": "rootly:index/scheduleRotation:ScheduleRotation",
+    "schedule_rotation_active_time": "rootly:index/scheduleRotationActiveTime:ScheduleRotationActiveTime",
+    "schedule_rotation_user": "rootly:index/scheduleRotationUser:ScheduleRotationUser",
     # --- escalation ---
-    "escalation_level":                 "rootly:index/escalationLevel:EscalationLevel",
+    "escalation_level": "rootly:index/escalationLevel:EscalationLevel",
     # --- playbooks ---
-    "playbook":                         "rootly:index/playbook:Playbook",
-    "playbook_task":                    "rootly:index/playbookTask:PlaybookTask",
+    "playbook": "rootly:index/playbook:Playbook",
+    "playbook_task": "rootly:index/playbookTask:PlaybookTask",
     # --- integrations ---
-    "webhooks_endpoint":                "rootly:index/webhooksEndpoint:WebhooksEndpoint",
-    "secret":                           "rootly:index/secret:Secret",
+    "webhooks_endpoint": "rootly:index/webhooksEndpoint:WebhooksEndpoint",
+    "secret": "rootly:index/secret:Secret",
     # --- status pages ---
-    "status_page":                      "rootly:index/statusPage:StatusPage",
-    "status_page_template":             "rootly:index/statusPageTemplate:StatusPageTemplate",
+    "status_page": "rootly:index/statusPage:StatusPage",
+    "status_page_template": "rootly:index/statusPageTemplate:StatusPageTemplate",
     # --- forms ---
-    "form_field":                       "rootly:index/formField:FormField",
-    "form_field_option":                "rootly:index/formFieldOption:FormFieldOption",
-    "form_field_position":              "rootly:index/formFieldPosition:FormFieldPosition",
-    "custom_form":                      "rootly:index/customForm:CustomForm",
+    "form_field": "rootly:index/formField:FormField",
+    "form_field_option": "rootly:index/formFieldOption:FormFieldOption",
+    "form_field_position": "rootly:index/formFieldPosition:FormFieldPosition",
+    "custom_form": "rootly:index/customForm:CustomForm",
     # --- workflows ---
-    "workflow_action_item":             "rootly:index/workflowActionItem:WorkflowActionItem",
-    "workflow_alert":                   "rootly:index/workflowAlert:WorkflowAlert",
-    "workflow_incident":                "rootly:index/workflowIncident:WorkflowIncident",
-    "workflow_post_mortem":             "rootly:index/workflowPostMortem:WorkflowPostMortem",
-    "workflow_pulse":                   "rootly:index/workflowPulse:WorkflowPulse",
-    "workflow_simple":                  "rootly:index/workflowSimple:WorkflowSimple",
-    "workflow_group":                   "rootly:index/workflowGroup:WorkflowGroup",
+    "workflow_action_item": "rootly:index/workflowActionItem:WorkflowActionItem",
+    "workflow_alert": "rootly:index/workflowAlert:WorkflowAlert",
+    "workflow_incident": "rootly:index/workflowIncident:WorkflowIncident",
+    "workflow_post_mortem": "rootly:index/workflowPostMortem:WorkflowPostMortem",
+    "workflow_pulse": "rootly:index/workflowPulse:WorkflowPulse",
+    "workflow_simple": "rootly:index/workflowSimple:WorkflowSimple",
+    "workflow_group": "rootly:index/workflowGroup:WorkflowGroup",
     # --- retrospectives ---
-    "postmortem_template":              "rootly:index/postMortemTemplate:PostMortemTemplate",
-    "retrospective_process":            "rootly:index/retrospectiveProcess:RetrospectiveProcess",
-    "retrospective_step":               "rootly:index/retrospectiveStep:RetrospectiveStep",
-    "retrospective_configuration":      "rootly:index/retrospectiveConfiguration:RetrospectiveConfiguration",
+    "postmortem_template": "rootly:index/postMortemTemplate:PostMortemTemplate",
+    "retrospective_process": "rootly:index/retrospectiveProcess:RetrospectiveProcess",
+    "retrospective_step": "rootly:index/retrospectiveStep:RetrospectiveStep",
+    "retrospective_configuration": "rootly:index/retrospectiveConfiguration:RetrospectiveConfiguration",
     # --- dashboards ---
-    "dashboard":                        "rootly:index/dashboard:Dashboard",
-    "dashboard_panel":                  "rootly:index/dashboardPanel:DashboardPanel",
+    "dashboard": "rootly:index/dashboard:Dashboard",
+    "dashboard_panel": "rootly:index/dashboardPanel:DashboardPanel",
 }
 
 # Maps trigger_params SDK class → Pulumi workflow kind.
@@ -1081,10 +1672,10 @@ _PULUMI_TYPE = {
 # be emitted with a warning and mapped to workflow_simple as a safe fallback.
 _TRIGGER_PARAMS_TO_KIND: list[tuple] = [
     (ActionItemTriggerParams, "workflow_action_item"),
-    (AlertTriggerParams,      "workflow_alert"),
-    (IncidentTriggerParams,   "workflow_incident"),
-    (PulseTriggerParams,      "workflow_pulse"),
-    (SimpleTriggerParams,     "workflow_simple"),
+    (AlertTriggerParams, "workflow_alert"),
+    (IncidentTriggerParams, "workflow_incident"),
+    (PulseTriggerParams, "workflow_pulse"),
+    (SimpleTriggerParams, "workflow_simple"),
 ]
 
 
@@ -1111,13 +1702,15 @@ def _build_import_entries(kind: str, items: list) -> list[dict]:
         count = seen_names.get(base_slug, 0)
         seen_names[base_slug] = count + 1
         slug = base_slug if count == 0 else f"{base_slug}-{count}"
-        entries.append({
-            "type": pulumi_type,
-            "name": slug,
-            "id": str(item.id),
-            # logicalName preserves the original display name as a comment in generated code.
-            "logicalName": display_name,
-        })
+        entries.append(
+            {
+                "type": pulumi_type,
+                "name": slug,
+                "id": str(item.id),
+                # logicalName preserves the original display name as a comment in generated code.
+                "logicalName": display_name,
+            }
+        )
     return entries
 
 
@@ -1157,12 +1750,14 @@ def _build_workflow_import_entries(items: list) -> list[dict]:
         count = seen_names.get(base_slug, 0)
         seen_names[base_slug] = count + 1
         slug = base_slug if count == 0 else f"{base_slug}-{count}"
-        entries.append({
-            "type": pulumi_type,
-            "name": slug,
-            "id": str(item.id),
-            "logicalName": display_name,
-        })
+        entries.append(
+            {
+                "type": pulumi_type,
+                "name": slug,
+                "id": str(item.id),
+                "logicalName": display_name,
+            }
+        )
     return entries
 
 
@@ -1208,16 +1803,18 @@ def export_pulumi_imports(client: AuthenticatedClient, output_path: str) -> None
     escalation_policy_items = fetch_all_escalation_policies(client)
     _add("escalation_policy", escalation_policy_items)
 
-    _add("environment",             _fetch("environments",             list_environments))
-    _add("severity",                _fetch("severities",               list_severities))
-    _add("functionality",           _fetch("functionalities",          list_functionalities))
-    _add("cause",                   _fetch("causes",                   list_causes))
-    _add("incident_type",           _fetch("incident types",           list_incident_types))
+    _add("environment", _fetch("environments", list_environments))
+    _add("severity", _fetch("severities", list_severities))
+    _add("functionality", _fetch("functionalities", list_functionalities))
+    _add("cause", _fetch("causes", list_causes))
+    _add("incident_type", _fetch("incident types", list_incident_types))
 
     incident_role_items = _fetch("incident roles", list_incident_roles)
     _add("incident_role", incident_role_items)
 
-    incident_permission_set_items = _fetch("incident permission sets", list_incident_permission_sets)
+    incident_permission_set_items = _fetch(
+        "incident permission sets", list_incident_permission_sets
+    )
     _add("incident_permission_set", incident_permission_set_items)
 
     schedule_items = _fetch("schedules", list_schedules)
@@ -1226,8 +1823,8 @@ def export_pulumi_imports(client: AuthenticatedClient, output_path: str) -> None
     playbook_items = _fetch("playbooks", list_playbooks)
     _add("playbook", playbook_items)
 
-    _add("webhooks_endpoint",   _fetch("webhooks endpoints",   list_webhooks_endpoints))
-    _add("secret",              _fetch("secrets",              list_secrets))
+    _add("webhooks_endpoint", _fetch("webhooks endpoints", list_webhooks_endpoints))
+    _add("secret", _fetch("secrets", list_secrets))
 
     status_page_items = _fetch("status pages", list_status_pages)
     _add("status_page", status_page_items)
@@ -1235,7 +1832,7 @@ def export_pulumi_imports(client: AuthenticatedClient, output_path: str) -> None
     form_field_items = _fetch("form fields", list_form_fields)
     _add("form_field", form_field_items)
 
-    _add("custom_form",         _fetch("custom forms",         list_custom_forms))
+    _add("custom_form", _fetch("custom forms", list_custom_forms))
 
     # Workflows — use the type-aware builder instead of _add.
     print("  workflows...")
@@ -1244,50 +1841,90 @@ def export_pulumi_imports(client: AuthenticatedClient, output_path: str) -> None
     all_entries.extend(workflow_entries)
     counts["workflows"] = len(workflow_items)
 
-    _add("workflow_group",      _fetch("workflow groups",      list_workflow_groups))
+    _add("workflow_group", _fetch("workflow groups", list_workflow_groups))
 
-    retrospective_process_items = _fetch("retrospective processes", list_retrospective_processes)
+    retrospective_process_items = _fetch(
+        "retrospective processes", list_retrospective_processes
+    )
     _add("retrospective_process", retrospective_process_items)
 
-    _add("retrospective_configuration", _fetch("retrospective configurations", list_retrospective_configurations))
-    _add("postmortem_template",         _fetch("post-mortem templates",        list_postmortem_templates))
+    _add(
+        "retrospective_configuration",
+        _fetch("retrospective configurations", list_retrospective_configurations),
+    )
+    _add(
+        "postmortem_template",
+        _fetch("post-mortem templates", list_postmortem_templates),
+    )
 
     dashboard_items = _fetch("dashboards", list_dashboards)
     _add("dashboard", dashboard_items)
 
     # --- Sub-resources (one level deep; keyed by parent) ---
 
-    _add("incident_role_task",
-         _fetch_sub("incident role tasks", list_incident_role_tasks, incident_role_items))
+    _add(
+        "incident_role_task",
+        _fetch_sub(
+            "incident role tasks", list_incident_role_tasks, incident_role_items
+        ),
+    )
 
-    _add("incident_permission_set_boolean",
-         _fetch_sub("incident permission set booleans",
-                    list_incident_permission_set_booleans, incident_permission_set_items))
+    _add(
+        "incident_permission_set_boolean",
+        _fetch_sub(
+            "incident permission set booleans",
+            list_incident_permission_set_booleans,
+            incident_permission_set_items,
+        ),
+    )
 
-    _add("incident_permission_set_resource",
-         _fetch_sub("incident permission set resources",
-                    list_incident_permission_set_resources, incident_permission_set_items))
+    _add(
+        "incident_permission_set_resource",
+        _fetch_sub(
+            "incident permission set resources",
+            list_incident_permission_set_resources,
+            incident_permission_set_items,
+        ),
+    )
 
-    schedule_rotation_items = _fetch_sub("schedule rotations", list_schedule_rotations, schedule_items)
+    schedule_rotation_items = _fetch_sub(
+        "schedule rotations", list_schedule_rotations, schedule_items
+    )
     _add("schedule_rotation", schedule_rotation_items)
 
-    _add("form_field_option",
-         _fetch_sub("form field options", list_form_field_options, form_field_items))
+    _add(
+        "form_field_option",
+        _fetch_sub("form field options", list_form_field_options, form_field_items),
+    )
 
-    _add("form_field_position",
-         _fetch_sub("form field positions", list_form_field_positions, form_field_items))
+    _add(
+        "form_field_position",
+        _fetch_sub("form field positions", list_form_field_positions, form_field_items),
+    )
 
-    _add("playbook_task",
-         _fetch_sub("playbook tasks", list_playbook_tasks, playbook_items))
+    _add(
+        "playbook_task",
+        _fetch_sub("playbook tasks", list_playbook_tasks, playbook_items),
+    )
 
-    _add("status_page_template",
-         _fetch_sub("status page templates", list_status_page_templates, status_page_items))
+    _add(
+        "status_page_template",
+        _fetch_sub(
+            "status page templates", list_status_page_templates, status_page_items
+        ),
+    )
 
-    _add("dashboard_panel",
-         _fetch_sub("dashboard panels", list_dashboard_panels, dashboard_items))
+    _add(
+        "dashboard_panel",
+        _fetch_sub("dashboard panels", list_dashboard_panels, dashboard_items),
+    )
 
-    _add("retrospective_step",
-         _fetch_sub("retrospective steps", list_retrospective_steps, retrospective_process_items))
+    _add(
+        "retrospective_step",
+        _fetch_sub(
+            "retrospective steps", list_retrospective_steps, retrospective_process_items
+        ),
+    )
 
     # --- Sub-sub-resources (two levels deep) ---
 
@@ -1297,19 +1934,34 @@ def export_pulumi_imports(client: AuthenticatedClient, output_path: str) -> None
         client, list_escalation_paths, escalation_policy_items, "escalation paths"
     )
     print("  escalation levels (per path)...")
-    _add("escalation_level",
-         _fetch_sub_resource_list(
-             client, list_escalation_levels_paths, escalation_path_items, "escalation levels"
-         ))
+    _add(
+        "escalation_level",
+        _fetch_sub_resource_list(
+            client,
+            list_escalation_levels_paths,
+            escalation_path_items,
+            "escalation levels",
+        ),
+    )
 
     # Schedule rotation memberships: schedule → rotation → users / active-time slots.
-    _add("schedule_rotation_active_time",
-         _fetch_sub("schedule rotation active times",
-                    list_schedule_rotation_active_days, schedule_rotation_items))
+    _add(
+        "schedule_rotation_active_time",
+        _fetch_sub(
+            "schedule rotation active times",
+            list_schedule_rotation_active_days,
+            schedule_rotation_items,
+        ),
+    )
 
-    _add("schedule_rotation_user",
-         _fetch_sub("schedule rotation users",
-                    list_schedule_rotation_users, schedule_rotation_items))
+    _add(
+        "schedule_rotation_user",
+        _fetch_sub(
+            "schedule rotation users",
+            list_schedule_rotation_users,
+            schedule_rotation_items,
+        ),
+    )
 
     # --- Write output ---
     import_doc = {"resources": all_entries}
@@ -1329,8 +1981,9 @@ def export_pulumi_imports(client: AuthenticatedClient, output_path: str) -> None
 
 # --- Entry point ---
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Manage Rootly services and roles")
+    parser = argparse.ArgumentParser(description="Manage Rootly API-backed resources")
     parser.add_argument(
         "--import",
         dest="import_file",
@@ -1338,12 +1991,12 @@ def main():
         const="data.py",
         default=None,
         metavar="FILE",
-        help="Create/update services and roles from FILE (default: data.py)",
+        help="Create/update managed Rootly resources from FILE (default: data.py)",
     )
     parser.add_argument(
         "--export",
         action="store_true",
-        help="Fetch all services and roles from Rootly and overwrite data.py",
+        help="Fetch Rootly resources from Rootly and overwrite data.py",
     )
     parser.add_argument(
         "--pulumi-import",
@@ -1360,7 +2013,7 @@ def main():
     parser.add_argument(
         "--report",
         action="store_true",
-        help="Print a report of all current services and roles",
+        help="Print a report of current managed Rootly resources",
     )
     args = parser.parse_args()
 
