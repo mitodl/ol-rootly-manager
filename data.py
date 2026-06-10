@@ -3870,6 +3870,31 @@ FUNCTIONALITIES = [
         "slack_channels": [],
         "slack_aliases": [],
     },
+    {
+        "status": "operational",
+        "show_uptime": True,
+        "show_uptime_last_days": 60,
+        "owners_group_ids": [],
+        "owners_user_ids": [],
+        "incidents_count": 0,
+        "properties": [],
+        "name": "Courseware",
+        "description": "MITx Online Open edX LMS courseware services",
+        "public_description": "MITx Online Open edX LMS courseware services",
+        "notify_emails": [],
+        "color": "#D7F5E1",
+        "position": 4,
+        "environment_ids": [],
+        "service_ids": [
+            "145db75f-c893-444b-9564-85ff41d42c6a",
+            "6ee39557-47af-40e9-a4f7-eccee9406ecf",
+        ],
+        "owner_group_ids": [],
+        "owner_user_ids": [],
+        "slack_channels": [],
+        "slack_aliases": [],
+        "previous_names": ["Courware"],
+    },
 ]
 
 CAUSES = [
@@ -4138,7 +4163,12 @@ STATUS_PAGES = [
         "time_zone": "Etc/UTC",
         "public": True,
         "service_ids": [],
-        "functionality_names": ["MIT Learn", "E-Commerce/Enrollment", "AskTim"],
+        "functionality_names": [
+            "MIT Learn",
+            "E-Commerce/Enrollment",
+            "AskTim",
+            "Courseware",
+        ],
         "enabled": True,
     },
 ]
