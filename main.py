@@ -202,6 +202,11 @@ _ESCALATION_POLICY_READ_ONLY = {
 # Common server-generated fields present on most resources.
 _COMMON_READ_ONLY = {"created_at", "updated_at"}
 
+# Importer-only convenience fields that are accepted in data.py but are not
+# Rootly API attributes. Strip these before constructing SDK payloads.
+_FUNCTIONALITY_IMPORT_ONLY = {"previous_names"}
+_STATUS_PAGE_IMPORT_ONLY = {"functionality_names"}
+
 # Per-type additional read-only fields (beyond _COMMON_READ_ONLY).
 # slug is auto-generated from name on create, so strip it to avoid conflicts on re-import.
 _SLUG_FIELD = {"slug"}
@@ -1076,9 +1081,30 @@ def _find_existing_by_attribute(
     return None
 
 
-def find_existing_functionality(client: AuthenticatedClient, name: str) -> str | None:
-    """Find a functionality by name and return its id, or None if not found."""
-    return _find_existing_by_attribute(client, list_functionalities, "name", name)
+def find_existing_functionality(
+    client: AuthenticatedClient, name: str, previous_names: list[str] | None = None
+) -> str | None:
+    """Find a functionality by current or previous name and return its id."""
+    for candidate_name in [name, *(previous_names or [])]:
+        existing_id = _find_existing_by_attribute(
+            client, list_functionalities, "name", candidate_name
+        )
+        if existing_id is not None:
+            return existing_id
+    return None
+
+
+def resolve_functionality_names(
+    client: AuthenticatedClient, functionality_names: list[str]
+) -> list[str]:
+    """Resolve functionality display names to Rootly functionality IDs."""
+    functionality_ids = []
+    for name in functionality_names:
+        functionality_id = find_existing_functionality(client, name)
+        if functionality_id is None:
+            raise ValueError(f"Could not find Rootly functionality named '{name}'")
+        functionality_ids.append(functionality_id)
+    return functionality_ids
 
 
 def find_existing_status_page(client: AuthenticatedClient, title: str) -> str | None:
@@ -1378,14 +1404,20 @@ def ensure_escalation_policy(client: AuthenticatedClient, policy_dict: dict) -> 
 def ensure_functionality(client: AuthenticatedClient, functionality_dict: dict) -> None:
     """Create a functionality if it doesn't exist, or update it if it does."""
     name = functionality_dict["name"]
-    existing_id = find_existing_functionality(client, name)
+    previous_names = functionality_dict.get("previous_names", [])
+    api_attributes = {
+        key: value
+        for key, value in functionality_dict.items()
+        if key not in _FUNCTIONALITY_IMPORT_ONLY
+    }
+    existing_id = find_existing_functionality(client, name, previous_names)
 
     if existing_id is not None:
         payload = UpdateFunctionality.from_dict(
             {
                 "data": {
                     "type": "functionalities",
-                    "attributes": functionality_dict,
+                    "attributes": api_attributes,
                 }
             }
         )
@@ -1403,7 +1435,7 @@ def ensure_functionality(client: AuthenticatedClient, functionality_dict: dict) 
             {
                 "data": {
                     "type": "functionalities",
-                    "attributes": functionality_dict,
+                    "attributes": api_attributes,
                 }
             }
         )
@@ -1421,6 +1453,16 @@ def ensure_functionality(client: AuthenticatedClient, functionality_dict: dict) 
 def ensure_status_page(client: AuthenticatedClient, status_page_dict: dict) -> None:
     """Create a status page if it doesn't exist, or update it if it does."""
     title = status_page_dict["title"]
+    api_attributes = {
+        key: value
+        for key, value in status_page_dict.items()
+        if key not in _STATUS_PAGE_IMPORT_ONLY
+    }
+    functionality_names = status_page_dict.get("functionality_names")
+    if functionality_names is not None:
+        api_attributes["functionality_ids"] = resolve_functionality_names(
+            client, functionality_names
+        )
     existing_id = find_existing_status_page(client, title)
 
     if existing_id is not None:
@@ -1428,7 +1470,7 @@ def ensure_status_page(client: AuthenticatedClient, status_page_dict: dict) -> N
             {
                 "data": {
                     "type": "status_pages",
-                    "attributes": status_page_dict,
+                    "attributes": api_attributes,
                 }
             }
         )
@@ -1446,7 +1488,7 @@ def ensure_status_page(client: AuthenticatedClient, status_page_dict: dict) -> N
             {
                 "data": {
                     "type": "status_pages",
-                    "attributes": status_page_dict,
+                    "attributes": api_attributes,
                 }
             }
         )

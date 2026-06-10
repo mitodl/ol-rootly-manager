@@ -41,6 +41,11 @@ uv run python main.py --import           # uses data.py
 uv run python main.py --import my_data.py
 ```
 
+Importer-only helper fields are supported in `data.py` and stripped before sending API payloads to Rootly:
+
+- `FUNCTIONALITIES[*]["previous_names"]`: previous display names to match when renaming a functionality in place.
+- `STATUS_PAGES[*]["functionality_names"]`: functionality display names to resolve to Rootly IDs for the status page.
+
 ### `--pulumi-import [FILE]`
 
 Fetch all Rootly resources and write a [Pulumi bulk-import JSON file](https://www.pulumi.com/docs/cli/commands/pulumi_import/) (default: `pulumi_imports.json`).
