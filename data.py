@@ -1685,6 +1685,50 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
+                "alerts_source_id": None,
+                "condition_type": "all",
+                "enabled": True,
+                "destination": {
+                    "target_type": "Service",
+                    "target_id": "0e8c091d-274d-4687-bb70-d85c5600e90b",
+                },
+                "owning_teams": [],
+                "name": "mitlearn elasticache AlarmName to MIT Learn - Redis",
+                "destinations": [
+                    {
+                        "target_type": "Service",
+                        "target_id": "0e8c091d-274d-4687-bb70-d85c5600e90b",
+                    }
+                ],
+                "condition_groups": [
+                    {
+                        "conditions": [
+                            {
+                                "property_field_condition_type": "contains",
+                                "property_field_type": "payload",
+                                "property_field_name": "$.Message.AlarmName",
+                                "property_field_value": "mitlearn",
+                                "property_field_values": [],
+                                "conditionable_type": None,
+                                "conditionable_id": None,
+                            },
+                            {
+                                "property_field_condition_type": "contains",
+                                "property_field_type": "payload",
+                                "property_field_name": "$.Message.AlarmName",
+                                "property_field_value": "elasticache",
+                                "property_field_values": [],
+                                "conditionable_type": None,
+                                "conditionable_id": None,
+                            },
+                        ],
+                        "position": 1,
+                    }
+                ],
+                "position": 3,
+                "fallback_rule": False,
+            },
+            {
                 "id": "13f4d084-ceb4-44fc-8615-b4fd8bac8b93",
                 "alerts_source_id": None,
                 "condition_type": "all",
@@ -1719,7 +1763,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 3,
+                "position": 4,
                 "fallback_rule": False,
             },
             {
@@ -1767,7 +1811,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 4,
+                "position": 5,
                 "fallback_rule": False,
             },
             {
@@ -1805,7 +1849,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 5,
+                "position": 6,
                 "fallback_rule": False,
             },
             {
@@ -1852,7 +1896,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 6,
+                "position": 7,
                 "fallback_rule": False,
             },
             {
@@ -1890,7 +1934,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 7,
+                "position": 8,
                 "fallback_rule": False,
             },
             {
@@ -1938,7 +1982,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 8,
+                "position": 9,
                 "fallback_rule": False,
             },
             {
@@ -1961,7 +2005,7 @@ ALERT_ROUTES = [
                     }
                 ],
                 "condition_groups": [],
-                "position": 9,
+                "position": 10,
                 "fallback_rule": True,
             },
         ],
