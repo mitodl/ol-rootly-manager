@@ -1767,6 +1767,51 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
+                "alerts_source_id": None,
+                "condition_type": "all",
+                "enabled": True,
+                "destination": {
+                    "target_type": "Service",
+                    "target_id": "24abd4d9-4aac-4ea0-afc6-eb2106cc52fd",
+                },
+                "owning_teams": [],
+                "name": "mitxonline elasticache AlarmName to MITx Online "
+                "Open edX Redis",
+                "destinations": [
+                    {
+                        "target_type": "Service",
+                        "target_id": "24abd4d9-4aac-4ea0-afc6-eb2106cc52fd",
+                    }
+                ],
+                "condition_groups": [
+                    {
+                        "conditions": [
+                            {
+                                "property_field_condition_type": "contains",
+                                "property_field_type": "payload",
+                                "property_field_name": "$.Message.AlarmName",
+                                "property_field_value": "mitxonline",
+                                "property_field_values": [],
+                                "conditionable_type": None,
+                                "conditionable_id": None,
+                            },
+                            {
+                                "property_field_condition_type": "contains",
+                                "property_field_type": "payload",
+                                "property_field_name": "$.Message.AlarmName",
+                                "property_field_value": "elasticache",
+                                "property_field_values": [],
+                                "conditionable_type": None,
+                                "conditionable_id": None,
+                            },
+                        ],
+                        "position": 1,
+                    }
+                ],
+                "position": 5,
+                "fallback_rule": False,
+            },
+            {
                 "id": "7c7dd0ad-3426-4f80-bd60-52335c96300e",
                 "alerts_source_id": None,
                 "condition_type": "all",
@@ -1811,7 +1856,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 5,
+                "position": 6,
                 "fallback_rule": False,
             },
             {
@@ -1849,7 +1894,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 6,
+                "position": 7,
                 "fallback_rule": False,
             },
             {
@@ -1896,7 +1941,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 7,
+                "position": 8,
                 "fallback_rule": False,
             },
             {
@@ -1934,7 +1979,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 8,
+                "position": 9,
                 "fallback_rule": False,
             },
             {
@@ -1982,7 +2027,7 @@ ALERT_ROUTES = [
                         "position": 1,
                     }
                 ],
-                "position": 9,
+                "position": 10,
                 "fallback_rule": False,
             },
             {
@@ -2005,7 +2050,7 @@ ALERT_ROUTES = [
                     }
                 ],
                 "condition_groups": [],
-                "position": 10,
+                "position": 11,
                 "fallback_rule": True,
             },
         ],

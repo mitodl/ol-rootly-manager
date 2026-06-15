@@ -65,11 +65,11 @@ update_payload_with_null_conditionable = {
             "alert_source_urgency_rules_attributes": [
                 {
                     "json_path": "$.data.action",
-                    "operator": "is_not",      # valid SDK value
+                    "operator": "is_not",  # valid SDK value
                     "value": "critical",
-                    "conditionable_type": None, # <-- null as returned by the API
+                    "conditionable_type": None,  # <-- null as returned by the API
                     "conditionable_id": None,
-                    "kind": "payload",          # valid SDK value
+                    "kind": "payload",  # valid SDK value
                     "alert_urgency_id": "00000000-0000-0000-0000-000000000001",
                 }
             ],
@@ -153,19 +153,28 @@ raw_attrs = target.attributes.to_dict()
 # Strip server-generated top-level fields (status, secret, etc.) — same as an
 # import script would do — but intentionally leave conditionable_type=None in
 # the urgency rules to trigger the bug.
-for key in ("status", "secret", "created_at", "updated_at", "email", "webhook_endpoint"):
+for key in (
+    "status",
+    "secret",
+    "created_at",
+    "updated_at",
+    "email",
+    "webhook_endpoint",
+):
     raw_attrs.pop(key, None)
 
 print("Step 3: Calling UpdateAlertsSource.from_dict() with the raw GET response")
 print("        attributes (conditionable_type=None still present in urgency rules) ...")
 
 try:
-    payload = UpdateAlertsSource.from_dict({
-        "data": {
-            "type": "alert_sources",
-            "attributes": raw_attrs,
+    payload = UpdateAlertsSource.from_dict(
+        {
+            "data": {
+                "type": "alert_sources",
+                "attributes": raw_attrs,
+            }
         }
-    })
+    )
     print("\nSUCCESS (unexpected — bug may be fixed in this SDK version)")
 except TypeError as exc:
     print(f"\nTypeError raised (bug confirmed):\n  {exc}")
