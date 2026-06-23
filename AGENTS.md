@@ -173,3 +173,57 @@ for rule in rules:
     print(f'[{rule[\"position\"]}] {rule[\"name\"]} -> {dests}')
 "
 ```
+
+## Keeping ALERT_STATUS.md current
+
+`ALERT_STATUS.md` is a generated snapshot that cross-references every Rootly service with its escalation policy and every alert route rule that targets it. It is the quickest way for a human (or future agent) to answer “what pages on what?” without reading all of `data.py`.
+
+**Regenerate it from the live Rootly state whenever any of the following change** (either via `data.py` import or via the Rootly UI):
+
+- Any service in `SERVICES` is added, removed, or has its `escalation_policy_id` modified.
+- Any rule in `ALERT_ROUTES` is added, removed, or has its `destination` / `condition_groups` / `enabled` / `fallback_rule` changed.
+- Any escalation policy’s `service_ids` list changes (this is what actually persists `escalation_policy_id` on services).
+- A new escalation policy or group is created that becomes a routing destination.
+
+Always regenerate from the **live Rootly API**, not from `data.py` — the live state is the source of truth and may include UI changes not yet exported.
+
+### Regeneration workflow
+
+Fetch live data with `curl` (Cloudflare blocks `urllib`/`requests` user-agents), join it in Python, write the report, then commit.
+
+```bash
+export ROOTLY_API_KEY=$(op item get "Rootly API Key" --fields credential --reveal)
+mkdir -p /tmp/rootly_scan
+for kind in services alert_routes escalation_policies teams; do
+    page=1
+    while :; do
+        out=$(curl -s -H "Authorization: Bearer $ROOTLY_API_KEY" \
+            "https://api.rootly.com/v1/${kind}?page%5Bnumber%5D=${page}&page%5Bsize%5D=100")
+        echo "$out" > "/tmp/rootly_scan/${kind}_p${page}.json"
+        has_next=$(echo "$out" | python3 -c "import json,sys;print('yes' if json.load(sys.stdin).get('links',{}).get('next') else 'no')")
+        [ "$has_next" = "no" ] && break
+        page=$((page+1))
+    done
+done
+```
+
+Then build the cross-reference table in Python by:
+
+1. Loading every paged file from `/tmp/rootly_scan/`.
+2. Building maps: `service_id -> attributes`, `policy_id -> name`, `group_id -> name`.
+3. For each route’s rules, recording every `destination` as `(route, rule, enabled, fallback, target_type, target_id)`.
+4. Indexing destinations by `target_id` so each service row shows every rule that points at it.
+5. Mapping each service’s `escalation_policy_id` to a paging status:
+   - Default Escalation Policy → ✅ paging
+   - QA Non-Paging Escalation Policy → ⚠️ non-paging (intentional QA)
+   - `None` and routed by any rule → ❌ silent gap (flag this)
+   - `None` and unrouted → ❌ silent (unused, low priority)
+6. Emitting a second table for non-Service destinations (`Group` and `EscalationPolicy` direct routes), including which rules are fallbacks and which are disabled.
+
+Write the result to `ALERT_STATUS.md` (overwrite, not append) and commit with a message like `docs: Refresh ALERT_STATUS.md after <change>`.
+
+### Gotchas when interpreting the data
+
+- `escalation_policy_id` on a service is **owned by the escalation policy’s `service_ids` list**, not by the service dict. Setting it on the service dict alone is reset on the next import. To make a service actually page, add its ID to the relevant escalation policy’s `service_ids` in `data.py`.
+- A service can have a non-null `escalation_policy_id` but never page because no alert route rule targets it.
+- A rule can be present but `enabled: false` (route-level or rule-level) — always check both flags before assuming an alert will fire.
