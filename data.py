@@ -39,6 +39,7 @@ SERVICES = [
         "owner_user_ids": [],
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
+        "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -62,6 +63,7 @@ SERVICES = [
         "owner_user_ids": [],
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
+        "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -109,6 +111,7 @@ SERVICES = [
         "owner_user_ids": [],
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
+        "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -132,6 +135,7 @@ SERVICES = [
         "owner_user_ids": [],
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
+        "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -155,6 +159,7 @@ SERVICES = [
         "owner_user_ids": [],
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
+        "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -178,6 +183,7 @@ SERVICES = [
         "owner_user_ids": [],
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
+        "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -201,6 +207,7 @@ SERVICES = [
         "owner_user_ids": [],
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
+        "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -224,6 +231,7 @@ SERVICES = [
         "owner_user_ids": [],
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
+        "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -247,6 +255,7 @@ SERVICES = [
         "owner_user_ids": [],
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
+        "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -3332,6 +3341,41 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
+                "alerts_source_id": None,
+                "condition_type": "all",
+                "enabled": True,
+                "destination": {
+                    "target_type": "Group",
+                    "target_id": "9f00e9f1-2f13-470e-a856-50ab5003f260",
+                },
+                "owning_teams": [],
+                "name": "Open Discussions Checks to Platform Engineering Team (Non-Paging)",
+                "destinations": [
+                    {
+                        "target_type": "Group",
+                        "target_id": "9f00e9f1-2f13-470e-a856-50ab5003f260",
+                    }
+                ],
+                "condition_groups": [
+                    {
+                        "conditions": [
+                            {
+                                "property_field_condition_type": "contains",
+                                "property_field_type": "payload",
+                                "property_field_name": "$.check_name",
+                                "property_field_value": "Open Discussions",
+                                "property_field_values": [],
+                                "conditionable_type": None,
+                                "conditionable_id": None,
+                            }
+                        ],
+                        "position": 1,
+                    }
+                ],
+                "position": 23,
+                "fallback_rule": False,
+            },
+            {
                 "id": "a9edc989-0396-49d8-a210-756f902765a1",
                 "alerts_source_id": None,
                 "condition_type": "all",
@@ -3351,7 +3395,7 @@ ALERT_ROUTES = [
                     }
                 ],
                 "condition_groups": [],
-                "position": 23,
+                "position": 24,
                 "fallback_rule": True,
             },
         ],
@@ -4159,9 +4203,9 @@ PLAYBOOKS = [
     },
 ]
 
-WEBHOOKS_ENDPOINTS = []
+WEBHOOKS_ENDPOINTS: list = []
 
-SECRETS = []
+SECRETS: list = []
 
 STATUS_PAGES = [
     {
@@ -4262,7 +4306,7 @@ STATUS_PAGES = [
     },
 ]
 
-STATUS_PAGE_TEMPLATES = []
+STATUS_PAGE_TEMPLATES: list = []
 
 FORM_FIELDS = [
     {
@@ -4668,7 +4712,7 @@ FORM_FIELDS = [
     },
 ]
 
-CUSTOM_FORMS = []
+CUSTOM_FORMS: list = []
 
 INCIDENT_PERMISSION_SETS = [
     {
