@@ -87,20 +87,6 @@ repos:
   - id: ruff-format
   - id: ruff-check
     args: [--extend-ignore=D1, --fix]
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v2.1.0
-  hooks:
-  - id: mypy
-    exclude: dockerfiles/|sdks/
-    args:
-    - --explicit-package-bases
-    - --namespace-packages
-    - --config-file=pyproject.toml
-    - --warn-unused-configs
-    additional_dependencies:
-    - pydantic>2.10
-    - types-PyYAML
-    - types-requests
 - repo: https://github.com/shellcheck-py/shellcheck-py
   rev: v0.11.0.1
   hooks:

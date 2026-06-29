@@ -574,28 +574,6 @@ SERVICES = [
         "incident_broadcast_channel": {},
     },
     {
-        "name": "MITx Online QA - Open edX - Redis",
-        "description": "QA-only Redis service for MITx Online CloudWatch alarms.",
-        "public_description": "",
-        "notify_emails": [],
-        "color": "#F4CFD1",
-        "position": 17,
-        "github_repository_branch": "master",
-        "gitlab_repository_branch": "master",
-        "environment_ids": [],
-        "service_ids": [],
-        "owner_group_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
-        "owner_user_ids": [],
-        "alerts_email_enabled": False,
-        "escalation_policy_id": "d63b7456-0d9f-44e8-80a5-4fc3df7e986b",
-        "alert_broadcast_enabled": False,
-        "incident_broadcast_enabled": False,
-        "slack_channels": [],
-        "slack_aliases": [],
-        "alert_broadcast_channel": {},
-        "incident_broadcast_channel": {},
-    },
-    {
         "name": "MITx Online - Open edX - Redis",
         "description": "",
         "public_description": "",
@@ -618,6 +596,28 @@ SERVICES = [
         "kubernetes_deployment_name": "",
         "alerts_email_enabled": False,
         "escalation_policy_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
+        "alert_broadcast_enabled": False,
+        "incident_broadcast_enabled": False,
+        "slack_channels": [],
+        "slack_aliases": [],
+        "alert_broadcast_channel": {},
+        "incident_broadcast_channel": {},
+    },
+    {
+        "name": "MITx Online QA - Open edX - Redis",
+        "description": "QA-only Redis service for MITx Online CloudWatch alarms.",
+        "public_description": "",
+        "notify_emails": [],
+        "color": "#F4CFD1",
+        "position": 17,
+        "github_repository_branch": "master",
+        "gitlab_repository_branch": "master",
+        "environment_ids": [],
+        "service_ids": [],
+        "owner_group_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
+        "owner_user_ids": [],
+        "alerts_email_enabled": False,
+        "escalation_policy_id": "d63b7456-0d9f-44e8-80a5-4fc3df7e986b",
         "alert_broadcast_enabled": False,
         "incident_broadcast_enabled": False,
         "slack_channels": [],
@@ -1197,6 +1197,7 @@ TEAMS = [
 
 ALERT_SOURCES = [
     {
+        "enabled": True,
         "name": "Cloudwatch - Critical",
         "source_type": "cloud_watch",
         "alert_urgency_id": "5d357977-9dbe-42ad-b647-5a442cab3d96",
@@ -1225,6 +1226,7 @@ ALERT_SOURCES = [
         ],
     },
     {
+        "enabled": True,
         "name": "Cloudwatch - Warning",
         "source_type": "cloud_watch",
         "alert_urgency_id": "5d357977-9dbe-42ad-b647-5a442cab3d96",
@@ -1253,6 +1255,7 @@ ALERT_SOURCES = [
         ],
     },
     {
+        "enabled": True,
         "name": "MITOL Sentry",
         "source_type": "sentry",
         "alert_urgency_id": "d7ed8e91-ffa9-4cc4-b524-729d14a4425b",
@@ -1307,6 +1310,7 @@ ALERT_SOURCES = [
         ],
     },
     {
+        "enabled": True,
         "name": "Grafana Prometheus - CI",
         "source_type": "alertmanager",
         "alert_urgency_id": "5d357977-9dbe-42ad-b647-5a442cab3d96",
@@ -1335,6 +1339,7 @@ ALERT_SOURCES = [
         ],
     },
     {
+        "enabled": True,
         "name": "Grafana Prometheus - QA",
         "source_type": "alertmanager",
         "alert_urgency_id": "fce5c971-6660-4ad9-90eb-e75122055f50",
@@ -1363,6 +1368,7 @@ ALERT_SOURCES = [
         ],
     },
     {
+        "enabled": True,
         "name": "Grafana Prometheus - Production",
         "source_type": "alertmanager",
         "alert_urgency_id": "5d357977-9dbe-42ad-b647-5a442cab3d96",
@@ -1407,6 +1413,7 @@ ALERT_SOURCES = [
         ],
     },
     {
+        "enabled": True,
         "accept_threaded_emails": False,
         "name": "Platform Engineering Team Email Monitor",
         "source_type": "email",
@@ -1440,6 +1447,7 @@ ALERT_SOURCES = [
         ],
     },
     {
+        "enabled": True,
         "name": "Grafana",
         "source_type": "grafana",
         "alert_urgency_id": "5d357977-9dbe-42ad-b647-5a442cab3d96",
@@ -1472,6 +1480,7 @@ ALERT_SOURCES = [
         ],
     },
     {
+        "enabled": True,
         "name": "PIngdom",
         "source_type": "generic_webhook",
         "alert_urgency_id": "5d357977-9dbe-42ad-b647-5a442cab3d96",
@@ -1501,52 +1510,52 @@ ALERT_SOURCES = [
             }
         ],
         "sourceable_attributes": {
-            "id": "44a72de7-a108-4562-bbc2-bc3789ca6ad6",
+            "id": "cc34a6e5-5418-42c2-bdc4-3b96ba55f488",
             "authentication_type": "bearer_token",
             "hmac_secret": None,
-            "created_at": "2026-05-21T12:26:32.030-07:00",
-            "updated_at": "2026-05-21T12:26:32.056-07:00",
+            "created_at": "2026-06-22T18:38:04.069-07:00",
+            "updated_at": "2026-06-22T18:38:04.100-07:00",
             "field_mappings": [
                 {
-                    "id": "59b16a89-1a00-484b-9378-e83f36b19df7",
+                    "id": "133eec54-5068-4513-9851-0cdb5f441bc1",
                     "field": "external_id",
                     "json_path": "$.check_id",
-                    "created_at": "2026-05-21T12:26:32.040-07:00",
-                    "updated_at": "2026-05-21T12:26:32.040-07:00",
+                    "created_at": "2026-06-22T18:38:04.082-07:00",
+                    "updated_at": "2026-06-22T18:38:04.082-07:00",
                 },
                 {
-                    "id": "b13c962d-00c8-42a6-874f-915c6d47b624",
+                    "id": "64ec092d-27c3-4bee-b99f-07cab878d7ef",
                     "field": "state",
                     "json_path": "$.current_state",
-                    "created_at": "2026-05-21T12:26:32.053-07:00",
-                    "updated_at": "2026-05-21T12:26:32.053-07:00",
+                    "created_at": "2026-06-22T18:38:04.096-07:00",
+                    "updated_at": "2026-06-22T18:38:04.096-07:00",
                 },
             ],
             "auto_resolve": True,
             "resolve_state": "UP",
             "field_mappings_attributes": [
                 {
-                    "id": "59b16a89-1a00-484b-9378-e83f36b19df7",
-                    "alerts_generic_webhook_source_id": "44a72de7-a108-4562-bbc2-bc3789ca6ad6",
+                    "id": "133eec54-5068-4513-9851-0cdb5f441bc1",
+                    "alerts_generic_webhook_source_id": "cc34a6e5-5418-42c2-bdc4-3b96ba55f488",
                     "deleted_at": None,
-                    "created_at": "2026-05-21T12:26:32.040-07:00",
-                    "updated_at": "2026-05-21T12:26:32.040-07:00",
+                    "created_at": "2026-06-22T18:38:04.082-07:00",
+                    "updated_at": "2026-06-22T18:38:04.082-07:00",
                     "field": "external_id",
                     "json_path": "$.check_id",
                 },
                 {
-                    "id": "b13c962d-00c8-42a6-874f-915c6d47b624",
-                    "alerts_generic_webhook_source_id": "44a72de7-a108-4562-bbc2-bc3789ca6ad6",
+                    "id": "64ec092d-27c3-4bee-b99f-07cab878d7ef",
+                    "alerts_generic_webhook_source_id": "cc34a6e5-5418-42c2-bdc4-3b96ba55f488",
                     "deleted_at": None,
-                    "created_at": "2026-05-21T12:26:32.053-07:00",
-                    "updated_at": "2026-05-21T12:26:32.053-07:00",
+                    "created_at": "2026-06-22T18:38:04.096-07:00",
+                    "updated_at": "2026-06-22T18:38:04.096-07:00",
                     "field": "state",
                     "json_path": "$.current_state",
                 },
             ],
         },
         "resolution_rule_attributes": {
-            "id": "d62df88d-ff0c-499d-838a-fe2bd1ee3dd4",
+            "id": "42945c76-8e44-4e4b-a1fd-76d7a1df6d13",
             "enabled": True,
             "condition_type": "all",
             "identifier_matchable_type": None,
@@ -1556,7 +1565,7 @@ ALERT_SOURCES = [
             "identifier_value_regex": None,
             "conditions_attributes": [
                 {
-                    "id": "d7014f46-08dc-4793-a747-0cce9152bd98",
+                    "id": "330b335d-6a63-4cbe-99fe-a3b796318109",
                     "field": "$.current_state",
                     "operator": "is",
                     "value": "UP",
@@ -1609,7 +1618,7 @@ ALERT_ROUTES = [
         "owning_team_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "rules": [
             {
-                "id": "16f05c3a-8faf-4db4-8ab4-9d6c30ab8d0f",
+                "id": "24fcd474-0055-428f-9e18-1f1c5ac1cbea",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -1617,8 +1626,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "dfc02e84-e281-43a6-b340-0e7cadd62036",
                 },
-                "created_at": "2026-05-28T08:29:26.034-07:00",
-                "updated_at": "2026-05-28T08:29:26.034-07:00",
+                "created_at": "2026-06-22T18:38:08.546-07:00",
+                "updated_at": "2026-06-22T18:38:08.546-07:00",
                 "owning_teams": [],
                 "name": "learn-ai AlarmName to MIT Learn AI - Django Webapp",
                 "destinations": [
@@ -1647,7 +1656,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "5e4dc6c9-e153-43e0-8f31-4557fbb72418",
+                "id": "7f9c9d1c-da85-4434-826c-31cd0c34db37",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -1655,8 +1664,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "7b46658d-cd59-4c49-970b-9e9dc8998a7e",
                 },
-                "created_at": "2026-05-28T08:29:26.089-07:00",
-                "updated_at": "2026-05-28T08:29:26.089-07:00",
+                "created_at": "2026-06-22T18:38:08.636-07:00",
+                "updated_at": "2026-06-22T18:38:08.636-07:00",
                 "owning_teams": [],
                 "name": "mitlearn rds AlarmName to MIT Learn - Postgres",
                 "destinations": [
@@ -1694,6 +1703,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
+                "id": "a68af7ad-7ed1-46f0-90f6-f3e6bff0a038",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -1701,6 +1711,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "0e8c091d-274d-4687-bb70-d85c5600e90b",
                 },
+                "created_at": "2026-06-22T18:38:08.720-07:00",
+                "updated_at": "2026-06-22T18:38:08.720-07:00",
                 "owning_teams": [],
                 "name": "mitlearn elasticache AlarmName to MIT Learn - Redis",
                 "destinations": [
@@ -1738,7 +1750,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "13f4d084-ceb4-44fc-8615-b4fd8bac8b93",
+                "id": "90b0b283-acf4-44ba-9ee9-d588fc178041",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -1746,8 +1758,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "c144023f-00c1-48dd-9e38-ad4c302207e3",
                 },
-                "created_at": "2026-05-28T08:29:26.145-07:00",
-                "updated_at": "2026-05-28T08:29:26.145-07:00",
+                "created_at": "2026-06-22T18:38:08.805-07:00",
+                "updated_at": "2026-06-22T18:38:08.805-07:00",
                 "owning_teams": [],
                 "name": "mitlearn AlarmName to MIT Learn - Django Webapp",
                 "destinations": [
@@ -1776,6 +1788,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
+                "id": "7cdab007-5e2c-40d7-89e8-2d72504724b4",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -1783,9 +1796,11 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "24abd4d9-4aac-4ea0-afc6-eb2106cc52fd",
                 },
+                "created_at": "2026-06-22T18:38:08.869-07:00",
+                "updated_at": "2026-06-22T18:38:08.869-07:00",
                 "owning_teams": [],
-                "name": "mitxonline elasticache AlarmName to MITx Online "
-                "Open edX Redis",
+                "name": "mitxonline elasticache AlarmName to MITx "
+                "Online Open edX Redis",
                 "destinations": [
                     {
                         "target_type": "Service",
@@ -1821,7 +1836,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "7c7dd0ad-3426-4f80-bd60-52335c96300e",
+                "id": "b8c4bb00-203e-4b10-b647-ed49b95218b1",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -1829,8 +1844,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "6ee39557-47af-40e9-a4f7-eccee9406ecf",
                 },
-                "created_at": "2026-05-28T08:29:26.208-07:00",
-                "updated_at": "2026-05-28T08:29:26.208-07:00",
+                "created_at": "2026-06-22T18:38:08.966-07:00",
+                "updated_at": "2026-06-22T18:38:08.966-07:00",
                 "owning_teams": [],
                 "name": "mitxonline edxapp AlarmName to MITx Online "
                 "Open edX LMS Webapp",
@@ -1869,7 +1884,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "3df02905-ef55-4be0-954e-9c345be25add",
+                "id": "896fc2e5-86c1-4910-8a45-b98d5ad6ac8e",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -1877,8 +1892,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "db3e4db5-fa3f-4239-a0f4-aa558847df66",
                 },
-                "created_at": "2026-05-28T08:29:26.266-07:00",
-                "updated_at": "2026-05-28T08:29:26.266-07:00",
+                "created_at": "2026-06-22T18:38:09.046-07:00",
+                "updated_at": "2026-06-22T18:38:09.046-07:00",
                 "owning_teams": [],
                 "name": "mitxonline AlarmName to MITx Online - Django Webapp",
                 "destinations": [
@@ -1907,7 +1922,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "620aced4-004e-489d-8ad7-da8d570c0b9b",
+                "id": "cfb0c1e4-b4f6-478f-bbd5-5fc347c215b7",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -1915,8 +1930,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "aa801b70-0496-4d9e-b889-e5ad99f2237b",
                 },
-                "created_at": "2026-05-28T08:29:26.308-07:00",
-                "updated_at": "2026-05-28T08:29:26.308-07:00",
+                "created_at": "2026-06-22T18:38:09.116-07:00",
+                "updated_at": "2026-06-22T18:38:09.116-07:00",
                 "owning_teams": [],
                 "name": "xpro elasticache AlarmName to MIT XPro Open edX Redis",
                 "destinations": [
@@ -1954,7 +1969,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "9fed849b-8e21-4e46-a1ad-8bb208ffae71",
+                "id": "4398790b-4aa7-498a-989c-984f08236adc",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -1962,8 +1977,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "0d45ed4d-bd52-4488-9953-f739f18bbdaf",
                 },
-                "created_at": "2026-05-28T08:29:26.360-07:00",
-                "updated_at": "2026-05-28T08:29:26.360-07:00",
+                "created_at": "2026-06-22T18:38:09.202-07:00",
+                "updated_at": "2026-06-22T18:38:09.202-07:00",
                 "owning_teams": [],
                 "name": "xpro AlarmName to MIT XPro Django Webapp",
                 "destinations": [
@@ -1992,7 +2007,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "30759347-47c3-43b5-8c88-b5a9cb29b0d7",
+                "id": "d418a53f-f06e-4d79-8fc3-b151760f7a15",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2000,8 +2015,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "cc36d725-ecfe-4d37-94f3-55d4e2ef91be",
                 },
-                "created_at": "2026-05-28T08:29:26.405-07:00",
-                "updated_at": "2026-05-28T08:29:26.405-07:00",
+                "created_at": "2026-06-22T18:38:09.283-07:00",
+                "updated_at": "2026-06-22T18:38:09.283-07:00",
                 "owning_teams": [],
                 "name": "mitx-qa elasticache AlarmName to MITx Online "
                 "QA - Open edX - Redis",
@@ -2040,7 +2055,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "2ec36751-dc78-44c4-95eb-0c2f3983a4cd",
+                "id": "937a5da2-0bee-4c9a-9a58-63f37b0e75ef",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2048,8 +2063,8 @@ ALERT_ROUTES = [
                     "target_type": "EscalationPolicy",
                     "target_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
                 },
-                "created_at": "2026-05-28T08:29:26.454-07:00",
-                "updated_at": "2026-05-28T08:29:26.454-07:00",
+                "created_at": "2026-06-22T18:38:09.373-07:00",
+                "updated_at": "2026-06-22T18:38:09.373-07:00",
                 "owning_teams": [],
                 "name": "Fallback Rule for Cloudwatch Service Route",
                 "destinations": [
@@ -2073,7 +2088,7 @@ ALERT_ROUTES = [
         "owning_team_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "rules": [
             {
-                "id": "90fdc798-b948-47a3-97fc-e218b3ccfb5e",
+                "id": "62fedebd-0410-4e8a-9cff-de48a326edd6",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2081,8 +2096,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "bdbf5e32-61dd-4184-9af6-f4c163e097d0",
                 },
-                "created_at": "2026-05-21T12:26:47.487-07:00",
-                "updated_at": "2026-05-21T12:26:47.487-07:00",
+                "created_at": "2026-06-22T18:38:11.826-07:00",
+                "updated_at": "2026-06-22T18:38:11.826-07:00",
                 "owning_teams": [],
                 "name": "openedx-residential project to MITx "
                 "Residential Open edX LMS Webapp",
@@ -2112,7 +2127,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "4a59a2cb-f4dd-43a4-a1c1-bc4585e143f7",
+                "id": "ec0cf31b-2cc1-4ead-b8eb-dc00c2392d83",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2120,8 +2135,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "db3e4db5-fa3f-4239-a0f4-aa558847df66",
                 },
-                "created_at": "2026-05-21T12:26:47.532-07:00",
-                "updated_at": "2026-05-21T12:26:47.532-07:00",
+                "created_at": "2026-06-22T18:38:11.870-07:00",
+                "updated_at": "2026-06-22T18:38:11.870-07:00",
                 "owning_teams": [],
                 "name": "mitxonline project to MITx Online - Django Webapp",
                 "destinations": [
@@ -2150,7 +2165,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "28b035eb-abcb-40f2-a26c-7a673a940660",
+                "id": "7997e849-5cdc-43d9-871e-426f3e79b930",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2158,8 +2173,8 @@ ALERT_ROUTES = [
                     "target_type": "EscalationPolicy",
                     "target_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
                 },
-                "created_at": "2026-05-21T12:26:47.568-07:00",
-                "updated_at": "2026-05-21T12:26:47.568-07:00",
+                "created_at": "2026-06-22T18:38:11.915-07:00",
+                "updated_at": "2026-06-22T18:38:11.915-07:00",
                 "owning_teams": [],
                 "name": "Fallback Rule for Sentry Service Route",
                 "destinations": [
@@ -2183,7 +2198,7 @@ ALERT_ROUTES = [
         "owning_team_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "rules": [
             {
-                "id": "a697a19e-f7d7-4c2f-85f2-31e0a22df388",
+                "id": "09a39823-2f8c-46b1-b205-6783d85210dc",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2191,8 +2206,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "dfc02e84-e281-43a6-b340-0e7cadd62036",
                 },
-                "created_at": "2026-05-21T12:26:45.697-07:00",
-                "updated_at": "2026-05-21T12:26:45.697-07:00",
+                "created_at": "2026-06-22T18:38:14.049-07:00",
+                "updated_at": "2026-06-22T18:38:14.049-07:00",
                 "owning_teams": [],
                 "name": "learn-ai namespace to MIT Learn AI - Django Webapp",
                 "destinations": [
@@ -2221,7 +2236,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "4ea368ae-b1f4-46e1-80da-2e9bc7cd360b",
+                "id": "52a76b04-d298-4ad2-83e7-4383af712954",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2229,8 +2244,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "c144023f-00c1-48dd-9e38-ad4c302207e3",
                 },
-                "created_at": "2026-05-21T12:26:45.736-07:00",
-                "updated_at": "2026-05-21T12:26:45.736-07:00",
+                "created_at": "2026-06-22T18:38:14.085-07:00",
+                "updated_at": "2026-06-22T18:38:14.085-07:00",
                 "owning_teams": [],
                 "name": "mitlearn namespace to MIT Learn - Django Webapp",
                 "destinations": [
@@ -2259,7 +2274,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "e9f7eae5-ead0-4d64-aa05-ccb7f3b4d792",
+                "id": "aba54d47-fde8-45a5-98a5-eacbf8f742f6",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2267,8 +2282,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "6ee39557-47af-40e9-a4f7-eccee9406ecf",
                 },
-                "created_at": "2026-05-21T12:26:45.788-07:00",
-                "updated_at": "2026-05-21T12:26:45.788-07:00",
+                "created_at": "2026-06-22T18:38:14.118-07:00",
+                "updated_at": "2026-06-22T18:38:14.118-07:00",
                 "owning_teams": [],
                 "name": "mitxonline-openedx namespace to MITx Online "
                 "Open edX LMS Webapp",
@@ -2298,7 +2313,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "e17a6319-761a-4b6e-8e99-4a33128171ad",
+                "id": "f7e84297-d017-47f8-869c-5511b47f74bf",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2306,8 +2321,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "db3e4db5-fa3f-4239-a0f4-aa558847df66",
                 },
-                "created_at": "2026-05-21T12:26:45.819-07:00",
-                "updated_at": "2026-05-21T12:26:45.819-07:00",
+                "created_at": "2026-06-22T18:38:14.152-07:00",
+                "updated_at": "2026-06-22T18:38:14.152-07:00",
                 "owning_teams": [],
                 "name": "mitxonline namespace to MITx Online - Django Webapp",
                 "destinations": [
@@ -2336,7 +2351,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "c0bfc02c-f193-4bbe-9b86-a0ee473ec643",
+                "id": "f56635a6-5df4-4679-9ee3-dcfb83c744c3",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2344,8 +2359,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "f42f1288-eca1-4bd4-b474-8a6bb96486fb",
                 },
-                "created_at": "2026-05-21T12:26:45.845-07:00",
-                "updated_at": "2026-05-21T12:26:45.845-07:00",
+                "created_at": "2026-06-22T18:38:14.187-07:00",
+                "updated_at": "2026-06-22T18:38:14.187-07:00",
                 "owning_teams": [],
                 "name": "openedx service + xpro- env to MIT XPro Open edX LMS Webapp",
                 "destinations": [
@@ -2383,7 +2398,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "f442d90f-bf00-40b9-8b66-4c1b75c03040",
+                "id": "5353f574-8ebb-45f1-ab03-c42333c78257",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2391,8 +2406,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "bdbf5e32-61dd-4184-9af6-f4c163e097d0",
                 },
-                "created_at": "2026-05-21T12:26:45.881-07:00",
-                "updated_at": "2026-05-21T12:26:45.881-07:00",
+                "created_at": "2026-06-22T18:38:14.229-07:00",
+                "updated_at": "2026-06-22T18:38:14.229-07:00",
                 "owning_teams": [],
                 "name": "openedx service + mitx- env to MITx "
                 "Residential Open edX LMS Webapp",
@@ -2431,7 +2446,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "fb551e3d-7341-4304-b7e4-9a19548b4856",
+                "id": "7a36bc80-bbc9-4478-88bd-041130bb050a",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2439,8 +2454,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "6ee39557-47af-40e9-a4f7-eccee9406ecf",
                 },
-                "created_at": "2026-05-21T12:26:45.915-07:00",
-                "updated_at": "2026-05-21T12:26:45.915-07:00",
+                "created_at": "2026-06-22T18:38:14.268-07:00",
+                "updated_at": "2026-06-22T18:38:14.268-07:00",
                 "owning_teams": [],
                 "name": "openedx service label to MITx Online Open edX LMS Webapp",
                 "destinations": [
@@ -2469,7 +2484,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "ac9ce60a-03da-4529-9565-8f2678c16304",
+                "id": "88f49ea6-eb72-47be-a7c3-333ebd01b547",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2477,8 +2492,8 @@ ALERT_ROUTES = [
                     "target_type": "EscalationPolicy",
                     "target_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
                 },
-                "created_at": "2026-05-21T12:26:45.943-07:00",
-                "updated_at": "2026-05-21T12:26:45.943-07:00",
+                "created_at": "2026-06-22T18:38:14.301-07:00",
+                "updated_at": "2026-06-22T18:38:14.301-07:00",
                 "owning_teams": [],
                 "name": "Fallback Rule for Grafana Production Service Route",
                 "destinations": [
@@ -2502,7 +2517,7 @@ ALERT_ROUTES = [
         "owning_team_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "rules": [
             {
-                "id": "21215e56-bae1-4a55-aa55-5baa01086448",
+                "id": "c451c4c3-d319-40ee-a352-6c21f4c15789",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2510,8 +2525,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "2c92b8b0-df02-4369-a876-72a895524773",
                 },
-                "created_at": "2026-05-21T12:26:42.214-07:00",
-                "updated_at": "2026-05-21T12:26:42.214-07:00",
+                "created_at": "2026-06-22T18:38:19.285-07:00",
+                "updated_at": "2026-06-22T18:38:19.285-07:00",
                 "owning_teams": [],
                 "name": "learn-ai api Checks to MIT Learn AI - API",
                 "destinations": [
@@ -2540,7 +2555,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "a1d696d6-71b4-4384-a69e-b44431cb0c22",
+                "id": "86a8d59e-c70e-4999-99b1-de7fa558c228",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2548,8 +2563,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "dfc02e84-e281-43a6-b340-0e7cadd62036",
                 },
-                "created_at": "2026-05-21T12:26:42.269-07:00",
-                "updated_at": "2026-05-21T12:26:42.269-07:00",
+                "created_at": "2026-06-22T18:38:19.329-07:00",
+                "updated_at": "2026-06-22T18:38:19.329-07:00",
                 "owning_teams": [],
                 "name": "learn-ai frontend Checks to MIT Learn AI - Django Webapp",
                 "destinations": [
@@ -2578,7 +2593,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "48411dc3-785e-49ee-8fc7-5459f5f12ede",
+                "id": "9f3309de-bd8c-4425-8020-73090bca1193",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2586,8 +2601,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "2c92b8b0-df02-4369-a876-72a895524773",
                 },
-                "created_at": "2026-05-21T12:26:42.300-07:00",
-                "updated_at": "2026-05-21T12:26:42.300-07:00",
+                "created_at": "2026-06-22T18:38:19.369-07:00",
+                "updated_at": "2026-06-22T18:38:19.369-07:00",
                 "owning_teams": [],
                 "name": "Learn AI API Checks to MIT Learn AI - API",
                 "destinations": [
@@ -2616,7 +2631,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "456acfd0-d518-43c9-b807-9658da88baf0",
+                "id": "448a8297-e984-4a9d-9cd4-7374d8fcd150",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2624,8 +2639,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "3ad10823-4726-4207-9e99-0d81e87b0473",
                 },
-                "created_at": "2026-05-21T12:26:42.331-07:00",
-                "updated_at": "2026-05-21T12:26:42.331-07:00",
+                "created_at": "2026-06-22T18:38:19.410-07:00",
+                "updated_at": "2026-06-22T18:38:19.410-07:00",
                 "owning_teams": [],
                 "name": "Learn API Checks to MIT Learn - API",
                 "destinations": [
@@ -2654,7 +2669,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "a177687d-74b7-4a55-a9fa-68431882ce81",
+                "id": "c4a02842-732c-4387-abb9-33421b9923ed",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2662,8 +2677,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "6ee39557-47af-40e9-a4f7-eccee9406ecf",
                 },
-                "created_at": "2026-05-21T12:26:42.357-07:00",
-                "updated_at": "2026-05-21T12:26:42.357-07:00",
+                "created_at": "2026-06-22T18:38:19.453-07:00",
+                "updated_at": "2026-06-22T18:38:19.453-07:00",
                 "owning_teams": [],
                 "name": "MIT Learn Open edX Checks to MITx Online Open edX LMS Webapp",
                 "destinations": [
@@ -2692,7 +2707,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "cd5632b7-40c0-43e7-a6eb-c83a0cb0202d",
+                "id": "6cdb51eb-ebe5-4ec3-840a-d4b72c6a17d6",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2700,8 +2715,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "6ee39557-47af-40e9-a4f7-eccee9406ecf",
                 },
-                "created_at": "2026-05-21T12:26:42.388-07:00",
-                "updated_at": "2026-05-21T12:26:42.388-07:00",
+                "created_at": "2026-06-22T18:38:19.492-07:00",
+                "updated_at": "2026-06-22T18:38:19.492-07:00",
                 "owning_teams": [],
                 "name": "MITx Online QA edX Checks to MITx Online Open edX LMS Webapp",
                 "destinations": [
@@ -2730,7 +2745,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "d525abc4-0f3f-4f78-acb9-1f85e19515a8",
+                "id": "40993bdc-e395-47b5-a516-ecfdb533bf00",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2738,8 +2753,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "db3e4db5-fa3f-4239-a0f4-aa558847df66",
                 },
-                "created_at": "2026-05-21T12:26:42.419-07:00",
-                "updated_at": "2026-05-21T12:26:42.419-07:00",
+                "created_at": "2026-06-22T18:38:19.535-07:00",
+                "updated_at": "2026-06-22T18:38:19.535-07:00",
                 "owning_teams": [],
                 "name": "MITx Online RC Checks to MITx Online Django Webapp",
                 "destinations": [
@@ -2768,7 +2783,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "bfda4399-74ee-4455-8cef-00349429c7c7",
+                "id": "e672643d-4c08-4dfa-a3fd-ed2c8809aa8d",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2776,8 +2791,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "6ee39557-47af-40e9-a4f7-eccee9406ecf",
                 },
-                "created_at": "2026-05-21T12:26:42.447-07:00",
-                "updated_at": "2026-05-21T12:26:42.447-07:00",
+                "created_at": "2026-06-22T18:38:19.574-07:00",
+                "updated_at": "2026-06-22T18:38:19.574-07:00",
                 "owning_teams": [],
                 "name": "MITx Online Production edX Checks to MITx "
                 "Online Open edX LMS Webapp",
@@ -2807,7 +2822,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "e311e2d6-4dd0-44d8-ab69-50244d393e93",
+                "id": "6534b8cd-f17b-4194-940d-d1e1053c85f6",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2815,8 +2830,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "db3e4db5-fa3f-4239-a0f4-aa558847df66",
                 },
-                "created_at": "2026-05-21T12:26:42.476-07:00",
-                "updated_at": "2026-05-21T12:26:42.476-07:00",
+                "created_at": "2026-06-22T18:38:19.616-07:00",
+                "updated_at": "2026-06-22T18:38:19.616-07:00",
                 "owning_teams": [],
                 "name": "MITx Online Production Checks to MITx Online Django Webapp",
                 "destinations": [
@@ -2845,7 +2860,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "ff7839bf-0a8a-4e81-81ee-66f36312c76d",
+                "id": "1921ba46-da4e-4170-88f5-6cdf1ffb5437",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2853,8 +2868,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "0f046ecc-a5eb-4cdf-aba2-6922001ad774",
                 },
-                "created_at": "2026-05-21T12:26:42.503-07:00",
-                "updated_at": "2026-05-21T12:26:42.503-07:00",
+                "created_at": "2026-06-22T18:38:19.662-07:00",
+                "updated_at": "2026-06-22T18:38:19.662-07:00",
                 "owning_teams": [],
                 "name": "MITx QA CMS Checks to MITx Online Open edX CMS Webapp",
                 "destinations": [
@@ -2883,7 +2898,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "f78f91ca-9138-4325-a9a5-46a6d2cd3515",
+                "id": "4447cfe1-9a45-41b6-9ff2-11606ddb704b",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2891,8 +2906,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "bdbf5e32-61dd-4184-9af6-f4c163e097d0",
                 },
-                "created_at": "2026-05-21T12:26:42.531-07:00",
-                "updated_at": "2026-05-21T12:26:42.531-07:00",
+                "created_at": "2026-06-22T18:38:19.705-07:00",
+                "updated_at": "2026-06-22T18:38:19.705-07:00",
                 "owning_teams": [],
                 "name": "MITx production LMS Checks to MITx "
                 "Residential Open edX LMS Webapp",
@@ -2922,7 +2937,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "1e09bc1e-34d7-48ec-b54c-4960eefb92bb",
+                "id": "9e0da490-500d-4bfd-af60-160ce9edd52f",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2930,8 +2945,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "bdbf5e32-61dd-4184-9af6-f4c163e097d0",
                 },
-                "created_at": "2026-05-21T12:26:42.560-07:00",
-                "updated_at": "2026-05-21T12:26:42.560-07:00",
+                "created_at": "2026-06-22T18:38:19.750-07:00",
+                "updated_at": "2026-06-22T18:38:19.750-07:00",
                 "owning_teams": [],
                 "name": "MITx production login Checks to MITx "
                 "Residential Open edX LMS Webapp",
@@ -2961,7 +2976,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "27b13a26-b520-4d95-a20f-f0ea63745f0f",
+                "id": "0c038ab5-6b96-4866-81df-e22a9895381f",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -2969,8 +2984,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "c144023f-00c1-48dd-9e38-ad4c302207e3",
                 },
-                "created_at": "2026-05-21T12:26:42.590-07:00",
-                "updated_at": "2026-05-21T12:26:42.590-07:00",
+                "created_at": "2026-06-22T18:38:19.796-07:00",
+                "updated_at": "2026-06-22T18:38:19.796-07:00",
                 "owning_teams": [],
                 "name": "Learn Production Checks to MIT Learn Django Webapp",
                 "destinations": [
@@ -2999,7 +3014,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "9cf893d1-722a-48b6-8fc1-24d203b9e555",
+                "id": "dae2dcf2-a5c8-4332-8a0e-af4bb0df92d0",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3007,8 +3022,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "c144023f-00c1-48dd-9e38-ad4c302207e3",
                 },
-                "created_at": "2026-05-21T12:26:42.620-07:00",
-                "updated_at": "2026-05-21T12:26:42.620-07:00",
+                "created_at": "2026-06-22T18:38:19.848-07:00",
+                "updated_at": "2026-06-22T18:38:19.848-07:00",
                 "owning_teams": [],
                 "name": "Learn QA Checks to MIT Learn Django Webapp",
                 "destinations": [
@@ -3037,7 +3052,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "0afaa73d-40a1-490a-9d74-004ecea5e8fb",
+                "id": "ff0fad31-0b23-4801-8d27-c544e89734e9",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3045,8 +3060,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "fa1c967f-d271-443f-b2bf-011cc78f5f20",
                 },
-                "created_at": "2026-05-21T12:26:42.648-07:00",
-                "updated_at": "2026-05-21T12:26:42.648-07:00",
+                "created_at": "2026-06-22T18:38:19.903-07:00",
+                "updated_at": "2026-06-22T18:38:19.903-07:00",
                 "owning_teams": [],
                 "name": "xPro CMS Checks to MIT XPro Open edX CMS Webapp",
                 "destinations": [
@@ -3075,7 +3090,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "526bd209-2520-4cf6-ad7b-8cfa6879248f",
+                "id": "00d592cf-e5b2-4864-8285-5d625392748b",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3083,8 +3098,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "f42f1288-eca1-4bd4-b474-8a6bb96486fb",
                 },
-                "created_at": "2026-05-21T12:26:42.677-07:00",
-                "updated_at": "2026-05-21T12:26:42.677-07:00",
+                "created_at": "2026-06-22T18:38:19.955-07:00",
+                "updated_at": "2026-06-22T18:38:19.955-07:00",
                 "owning_teams": [],
                 "name": "xPro LMS Checks to MIT XPro Open edX LMS Webapp",
                 "destinations": [
@@ -3113,7 +3128,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "79e0dbb5-315b-40db-9bf6-45f5ed6dbe91",
+                "id": "5c3e305d-808d-4a04-9f86-60184d561117",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3121,8 +3136,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "0d45ed4d-bd52-4488-9953-f739f18bbdaf",
                 },
-                "created_at": "2026-05-21T12:26:42.709-07:00",
-                "updated_at": "2026-05-21T12:26:42.709-07:00",
+                "created_at": "2026-06-22T18:38:20.010-07:00",
+                "updated_at": "2026-06-22T18:38:20.010-07:00",
                 "owning_teams": [],
                 "name": "xPro Checks to MIT XPro Django Webapp",
                 "destinations": [
@@ -3151,7 +3166,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "4e3e3a59-2768-46bc-b16c-4091817edbc7",
+                "id": "86310d75-5fbb-424d-8e62-8781e4031a59",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3159,8 +3174,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "503028e7-d65f-44b6-8968-b9795ccc41c2",
                 },
-                "created_at": "2026-05-21T12:26:42.738-07:00",
-                "updated_at": "2026-05-21T12:26:42.738-07:00",
+                "created_at": "2026-06-22T18:38:20.091-07:00",
+                "updated_at": "2026-06-22T18:38:20.091-07:00",
                 "owning_teams": [],
                 "name": "SSO Checks to Keycloak SSO Webapp",
                 "destinations": [
@@ -3189,7 +3204,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "c9ca1eeb-50a4-4e2e-8801-7202ac1dfa61",
+                "id": "a7dbfcd0-4027-4425-825b-4d0dc7d20956",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3197,8 +3212,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "dc51f8d3-56fb-4ee3-b921-c9fdda79ea9c",
                 },
-                "created_at": "2026-05-21T12:26:42.767-07:00",
-                "updated_at": "2026-05-21T12:26:42.767-07:00",
+                "created_at": "2026-06-22T18:38:20.135-07:00",
+                "updated_at": "2026-06-22T18:38:20.135-07:00",
                 "owning_teams": [],
                 "name": "Bootcamp Checks to Bootcamp Django Webapp",
                 "destinations": [
@@ -3227,7 +3242,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "161c4c71-ff4b-4578-853d-7c15a3060913",
+                "id": "0dd4ccec-a7e0-477f-a0be-f094ee42eda7",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3235,8 +3250,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "defb1faa-e8a4-4fe5-8f03-4103667592f1",
                 },
-                "created_at": "2026-05-21T12:26:42.797-07:00",
-                "updated_at": "2026-05-21T12:26:42.797-07:00",
+                "created_at": "2026-06-22T18:38:20.178-07:00",
+                "updated_at": "2026-06-22T18:38:20.178-07:00",
                 "owning_teams": [],
                 "name": "ODL Video Checks to ODL Video Django Webapp",
                 "destinations": [
@@ -3265,7 +3280,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "ffba9708-33aa-4679-8cac-8354420e9f04",
+                "id": "83e8413e-0029-4904-adb6-b9731ffc01a7",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3273,8 +3288,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "5281c3c5-eb5e-4b7f-9407-950570d66261",
                 },
-                "created_at": "2026-05-21T12:26:42.828-07:00",
-                "updated_at": "2026-05-21T12:26:42.828-07:00",
+                "created_at": "2026-06-22T18:38:20.221-07:00",
+                "updated_at": "2026-06-22T18:38:20.221-07:00",
                 "owning_teams": [],
                 "name": "Airbyte Checks to Airbyte Webapp",
                 "destinations": [
@@ -3303,7 +3318,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "f44a2286-70c8-4f36-bcfc-c0de08e1a909",
+                "id": "65a9317c-edd2-4461-812a-0f43a874abb9",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3311,8 +3326,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "e7f7e16e-a7e7-4666-b779-96b33bbf402b",
                 },
-                "created_at": "2026-05-21T12:26:42.858-07:00",
-                "updated_at": "2026-05-21T12:26:42.858-07:00",
+                "created_at": "2026-06-22T18:38:20.266-07:00",
+                "updated_at": "2026-06-22T18:38:20.266-07:00",
                 "owning_teams": [],
                 "name": "Dagster Checks to Dagster Webapp",
                 "destinations": [
@@ -3341,6 +3356,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
+                "id": "ca04182c-1567-48d4-b879-81d996f2e3ba",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3348,8 +3364,11 @@ ALERT_ROUTES = [
                     "target_type": "Group",
                     "target_id": "9f00e9f1-2f13-470e-a856-50ab5003f260",
                 },
+                "created_at": "2026-06-22T18:38:20.303-07:00",
+                "updated_at": "2026-06-22T18:38:20.303-07:00",
                 "owning_teams": [],
-                "name": "Open Discussions Checks to Platform Engineering Team (Non-Paging)",
+                "name": "Open Discussions Checks to Platform "
+                "Engineering Team (Non-Paging)",
                 "destinations": [
                     {
                         "target_type": "Group",
@@ -3376,7 +3395,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "a9edc989-0396-49d8-a210-756f902765a1",
+                "id": "1354bea6-038b-40c5-aac3-b2727460962e",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3384,8 +3403,8 @@ ALERT_ROUTES = [
                     "target_type": "EscalationPolicy",
                     "target_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
                 },
-                "created_at": "2026-05-21T12:26:42.894-07:00",
-                "updated_at": "2026-05-21T12:26:42.894-07:00",
+                "created_at": "2026-06-22T18:38:20.339-07:00",
+                "updated_at": "2026-06-22T18:38:20.339-07:00",
                 "owning_teams": [],
                 "name": "Fallback Rule for Pingdom Service Route",
                 "destinations": [
@@ -3409,7 +3428,7 @@ ALERT_ROUTES = [
         "owning_team_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "rules": [
             {
-                "id": "9fcc32fb-38e8-4938-90bc-98630f901c22",
+                "id": "c062d4b3-4026-4bdc-8326-aec94f6f4602",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3417,8 +3436,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "2c92b8b0-df02-4369-a876-72a895524773",
                 },
-                "created_at": "2026-05-21T12:26:38.614-07:00",
-                "updated_at": "2026-05-21T12:26:38.614-07:00",
+                "created_at": "2026-06-22T18:38:22.839-07:00",
+                "updated_at": "2026-06-22T18:38:22.839-07:00",
                 "owning_teams": [],
                 "name": "MIT Learn AI API to MIT Learn AI - API Service",
                 "destinations": [
@@ -3456,7 +3475,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "0ccd6ef0-6df1-4724-83fc-0a1bda7e1e69",
+                "id": "a60ed1d2-bd31-479f-bad3-a30091e7a883",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3464,8 +3483,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "dfc02e84-e281-43a6-b340-0e7cadd62036",
                 },
-                "created_at": "2026-05-21T12:26:38.672-07:00",
-                "updated_at": "2026-05-21T12:26:38.672-07:00",
+                "created_at": "2026-06-22T18:38:22.881-07:00",
+                "updated_at": "2026-06-22T18:38:22.881-07:00",
                 "owning_teams": [],
                 "name": "MIT Learn AI to MIT Learn AI - Django Webapp Service",
                 "destinations": [
@@ -3494,7 +3513,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "a28930cf-c2cf-4404-a0c7-a6f62c15f603",
+                "id": "00bf8946-9754-4543-87e7-416a4108cca9",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3502,8 +3521,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "3ad10823-4726-4207-9e99-0d81e87b0473",
                 },
-                "created_at": "2026-05-21T12:26:38.711-07:00",
-                "updated_at": "2026-05-21T12:26:38.711-07:00",
+                "created_at": "2026-06-22T18:38:22.916-07:00",
+                "updated_at": "2026-06-22T18:38:22.916-07:00",
                 "owning_teams": [],
                 "name": "MIT Learn API to MIT Learn - API Service",
                 "destinations": [
@@ -3541,7 +3560,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "4f7df6bf-71db-49ea-a846-3390514880b4",
+                "id": "d4da1f49-dff3-4d51-b08d-19e9e9ccff04",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3549,8 +3568,8 @@ ALERT_ROUTES = [
                     "target_type": "Service",
                     "target_id": "b2389961-09be-4167-a304-a2ee1ef9af1b",
                 },
-                "created_at": "2026-05-21T12:26:38.758-07:00",
-                "updated_at": "2026-05-21T12:26:38.758-07:00",
+                "created_at": "2026-06-22T18:38:22.960-07:00",
+                "updated_at": "2026-06-22T18:38:22.960-07:00",
                 "owning_teams": [],
                 "name": "MIT Learn NextJS to NextJS Service",
                 "destinations": [
@@ -3588,7 +3607,7 @@ ALERT_ROUTES = [
                 "fallback_rule": False,
             },
             {
-                "id": "6b09a40e-4a42-483b-9e9e-ec406e6d15f5",
+                "id": "58c16b47-9dca-4b1b-88b3-ec45a8d8906c",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3596,8 +3615,8 @@ ALERT_ROUTES = [
                     "target_type": "EscalationPolicy",
                     "target_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
                 },
-                "created_at": "2026-05-21T12:26:38.803-07:00",
-                "updated_at": "2026-05-21T12:26:38.803-07:00",
+                "created_at": "2026-06-22T18:38:23.001-07:00",
+                "updated_at": "2026-06-22T18:38:23.001-07:00",
                 "owning_teams": [],
                 "name": "Fallback Rule for Grafana Service Route",
                 "destinations": [
@@ -3621,7 +3640,7 @@ ALERT_ROUTES = [
         "owning_team_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "rules": [
             {
-                "id": "fbfc8194-9e88-4b39-a861-8863e8758e49",
+                "id": "cc7190f7-1614-4dee-b042-5dcf6bf63435",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": False,
@@ -3629,8 +3648,8 @@ ALERT_ROUTES = [
                     "target_type": "EscalationPolicy",
                     "target_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
                 },
-                "created_at": "2026-05-21T12:26:33.479-07:00",
-                "updated_at": "2026-05-21T12:26:33.479-07:00",
+                "created_at": "2026-06-22T18:38:24.201-07:00",
+                "updated_at": "2026-06-22T18:38:24.201-07:00",
                 "owning_teams": [],
                 "name": "Fallback Rule for Cloudwatch Catch-All Route",
                 "destinations": [
@@ -3654,7 +3673,7 @@ ALERT_ROUTES = [
         "owning_team_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "rules": [
             {
-                "id": "25e78de1-633a-4a9f-bcf1-539d267c2a87",
+                "id": "8e7d9227-a354-427a-89fa-ee6bfcd19951",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3662,8 +3681,8 @@ ALERT_ROUTES = [
                     "target_type": "EscalationPolicy",
                     "target_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
                 },
-                "created_at": "2026-05-21T12:26:35.263-07:00",
-                "updated_at": "2026-05-21T12:26:35.263-07:00",
+                "created_at": "2026-06-22T18:38:24.909-07:00",
+                "updated_at": "2026-06-22T18:38:24.909-07:00",
                 "owning_teams": [],
                 "name": "Fallback Rule for Grafana Production Catch-All Route",
                 "destinations": [
@@ -3687,7 +3706,7 @@ ALERT_ROUTES = [
         "owning_team_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "rules": [
             {
-                "id": "335ceab2-fb7c-4ddc-9c13-7a6a901fdb1b",
+                "id": "884fd5bb-403f-4194-bb0c-15b8b4ac512a",
                 "alerts_source_id": None,
                 "condition_type": "any",
                 "enabled": True,
@@ -3695,8 +3714,8 @@ ALERT_ROUTES = [
                     "target_type": "EscalationPolicy",
                     "target_id": "96629210-cc41-4e57-b059-b182a0f01c5b",
                 },
-                "created_at": "2026-05-21T12:26:36.268-07:00",
-                "updated_at": "2026-05-21T12:26:36.268-07:00",
+                "created_at": "2026-06-22T18:38:25.589-07:00",
+                "updated_at": "2026-06-22T18:38:25.589-07:00",
                 "owning_teams": [],
                 "name": "Fallback Rule for Pingdom Catch-All Route",
                 "destinations": [
@@ -3720,7 +3739,7 @@ ALERT_ROUTES = [
         "owning_team_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "rules": [
             {
-                "id": "13b6605e-57ba-41f9-9a67-557a1af80a6e",
+                "id": "e2222288-fac5-4a0b-9e39-8a59b5d94dff",
                 "alerts_source_id": None,
                 "condition_type": "all",
                 "enabled": True,
@@ -3728,8 +3747,8 @@ ALERT_ROUTES = [
                     "target_type": "Group",
                     "target_id": "9f00e9f1-2f13-470e-a856-50ab5003f260",
                 },
-                "created_at": "2026-05-21T12:26:37.095-07:00",
-                "updated_at": "2026-05-21T12:26:37.095-07:00",
+                "created_at": "2026-06-22T18:38:26.203-07:00",
+                "updated_at": "2026-06-22T18:38:26.203-07:00",
                 "owning_teams": [],
                 "name": "Fallback Rule for Platform Engineering Team "
                 "Email Monitor Route",
@@ -3754,43 +3773,43 @@ ESCALATION_POLICIES = [
         "description": "",
         "group_ids": ["9f00e9f1-2f13-470e-a856-50ab5003f260"],
         "service_ids": [
+            "cdceaa06-6690-4351-a3af-dd36bfd6fb55",
+            "6ee39557-47af-40e9-a4f7-eccee9406ecf",
             "24ef3748-0a12-4a55-9b4e-5eb94a08fe03",
+            "fa1c967f-d271-443f-b2bf-011cc78f5f20",
+            "aaede19c-4521-40cd-ab64-6a2d70dd783c",
+            "503028e7-d65f-44b6-8968-b9795ccc41c2",
+            "2c92b8b0-df02-4369-a876-72a895524773",
+            "ffd3bdea-a4f6-4f4a-a12a-f59e71f29fe9",
+            "0d45ed4d-bd52-4488-9953-f739f18bbdaf",
+            "3ad10823-4726-4207-9e99-0d81e87b0473",
+            "b2389961-09be-4167-a304-a2ee1ef9af1b",
+            "f42f1288-eca1-4bd4-b474-8a6bb96486fb",
+            "8be387cb-2c05-4688-8ea0-730328297d62",
+            "aa801b70-0496-4d9e-b889-e5ad99f2237b",
+            "e7f7e16e-a7e7-4666-b779-96b33bbf402b",
+            "5281c3c5-eb5e-4b7f-9407-950570d66261",
+            "dc51f8d3-56fb-4ee3-b921-c9fdda79ea9c",
+            "bdbf5e32-61dd-4184-9af6-f4c163e097d0",
+            "6f9bf7d9-d06c-4ac4-8105-f8def1dc91d2",
+            "e7b42ec2-216d-4e84-828e-97bd709b018b",
+            "9fc1b049-d60c-4a4c-b5d9-95ea8db3aae8",
+            "71bb3195-11a8-4a2d-b9b8-2b1dbbc5d6c2",
+            "7b46658d-cd59-4c49-970b-9e9dc8998a7e",
+            "0e8c091d-274d-4687-bb70-d85c5600e90b",
+            "24abd4d9-4aac-4ea0-afc6-eb2106cc52fd",
             "ce09f262-1edf-475f-b145-3185d0da7241",
+            "0f046ecc-a5eb-4cdf-aba2-6922001ad774",
             "145db75f-c893-444b-9564-85ff41d42c6a",
+            "3fa021bd-25ba-4732-b588-a304cb1a104f",
             "aefc0e95-1376-41f2-b102-335a186e9eb7",
             "964321a2-ebd8-46d4-bd9e-c582cb4e4e49",
             "db3e4db5-fa3f-4239-a0f4-aa558847df66",
+            "70173c97-f29d-453f-93ea-da9321d5984d",
             "defb1faa-e8a4-4fe5-8f03-4103667592f1",
             "dfc02e84-e281-43a6-b340-0e7cadd62036",
-            "6ee39557-47af-40e9-a4f7-eccee9406ecf",
             "c144023f-00c1-48dd-9e38-ad4c302207e3",
             "2cc9bbde-ba8a-4c34-aa85-65f4d9c8aff4",
-            "aa801b70-0496-4d9e-b889-e5ad99f2237b",
-            "0d45ed4d-bd52-4488-9953-f739f18bbdaf",
-            "ffd3bdea-a4f6-4f4a-a12a-f59e71f29fe9",
-            "3fa021bd-25ba-4732-b588-a304cb1a104f",
-            "0f046ecc-a5eb-4cdf-aba2-6922001ad774",
-            "e7b42ec2-216d-4e84-828e-97bd709b018b",
-            "6f9bf7d9-d06c-4ac4-8105-f8def1dc91d2",
-            "9fc1b049-d60c-4a4c-b5d9-95ea8db3aae8",
-            "70173c97-f29d-453f-93ea-da9321d5984d",
-            "8be387cb-2c05-4688-8ea0-730328297d62",
-            "71bb3195-11a8-4a2d-b9b8-2b1dbbc5d6c2",
-            "cdceaa06-6690-4351-a3af-dd36bfd6fb55",
-            "7b46658d-cd59-4c49-970b-9e9dc8998a7e",
-            "0e8c091d-274d-4687-bb70-d85c5600e90b",
-            "b2389961-09be-4167-a304-a2ee1ef9af1b",
-            "aaede19c-4521-40cd-ab64-6a2d70dd783c",
-            "24abd4d9-4aac-4ea0-afc6-eb2106cc52fd",
-            "fa1c967f-d271-443f-b2bf-011cc78f5f20",
-            "f42f1288-eca1-4bd4-b474-8a6bb96486fb",
-            "e7f7e16e-a7e7-4666-b779-96b33bbf402b",
-            "5281c3c5-eb5e-4b7f-9407-950570d66261",
-            "503028e7-d65f-44b6-8968-b9795ccc41c2",
-            "dc51f8d3-56fb-4ee3-b921-c9fdda79ea9c",
-            "bdbf5e32-61dd-4184-9af6-f4c163e097d0",
-            "2c92b8b0-df02-4369-a876-72a895524773",
-            "3ad10823-4726-4207-9e99-0d81e87b0473",
         ],
         "business_hours": {
             "time_zone": "America/New_York",
@@ -3862,7 +3881,7 @@ ENVIRONMENTS = [
 
 SEVERITIES = [
     {
-        "name": "SEV3",
+        "name": "P4",
         "description": "A minor inconvenience to customers with a workaround "
         "available (e.g. display bug)",
         "severity": "low",
@@ -3873,7 +3892,7 @@ SEVERITIES = [
         "slack_aliases": [],
     },
     {
-        "name": "SEV2",
+        "name": "P3",
         "description": "Moderate impact on specific features and requires "
         "prompt but not immediate attention (e.g. slow response "
         "times)",
@@ -3885,7 +3904,7 @@ SEVERITIES = [
         "slack_aliases": [],
     },
     {
-        "name": "SEV1",
+        "name": "P2",
         "description": "Significant impact where major functionality is "
         "impacted and requires urgent attention (e.g. login "
         "broken)",
@@ -3897,7 +3916,7 @@ SEVERITIES = [
         "slack_aliases": [],
     },
     {
-        "name": "SEV0",
+        "name": "P1",
         "description": "Critical system issue actively impacting many "
         "customers' ability to use the product (e.g. website "
         "outage)",
@@ -3911,6 +3930,30 @@ SEVERITIES = [
 ]
 
 FUNCTIONALITIES = [
+    {
+        "status": "operational",
+        "show_uptime": True,
+        "show_uptime_last_days": 60,
+        "owners_group_ids": [],
+        "owners_user_ids": [],
+        "incidents_count": 1,
+        "properties": [],
+        "name": "Courseware",
+        "description": "MITx Online Open edX LMS courseware services",
+        "public_description": "MITx Online Open edX LMS courseware services",
+        "notify_emails": [],
+        "color": "#D7F5E1",
+        "position": 4,
+        "environment_ids": [],
+        "service_ids": [
+            "145db75f-c893-444b-9564-85ff41d42c6a",
+            "6ee39557-47af-40e9-a4f7-eccee9406ecf",
+        ],
+        "owner_group_ids": [],
+        "owner_user_ids": [],
+        "slack_channels": [],
+        "slack_aliases": [],
+    },
     {
         "status": "operational",
         "show_uptime": True,
@@ -3937,7 +3980,6 @@ FUNCTIONALITIES = [
         "owner_user_ids": [],
         "slack_channels": [],
         "slack_aliases": [],
-        "previous_names": ["MIT Learn AI"],
     },
     {
         "status": "operational",
@@ -3969,7 +4011,6 @@ FUNCTIONALITIES = [
         "owner_user_ids": [],
         "slack_channels": [],
         "slack_aliases": [],
-        "previous_names": ["MITx Online"],
     },
     {
         "status": "operational",
@@ -4011,31 +4052,6 @@ FUNCTIONALITIES = [
         "owner_user_ids": [],
         "slack_channels": [],
         "slack_aliases": [],
-    },
-    {
-        "status": "operational",
-        "show_uptime": True,
-        "show_uptime_last_days": 60,
-        "owners_group_ids": [],
-        "owners_user_ids": [],
-        "incidents_count": 0,
-        "properties": [],
-        "name": "Courseware",
-        "description": "MITx Online Open edX LMS courseware services",
-        "public_description": "MITx Online Open edX LMS courseware services",
-        "notify_emails": [],
-        "color": "#D7F5E1",
-        "position": 4,
-        "environment_ids": [],
-        "service_ids": [
-            "145db75f-c893-444b-9564-85ff41d42c6a",
-            "6ee39557-47af-40e9-a4f7-eccee9406ecf",
-        ],
-        "owner_group_ids": [],
-        "owner_user_ids": [],
-        "slack_channels": [],
-        "slack_aliases": [],
-        "previous_names": ["Courware"],
     },
 ]
 
@@ -4212,11 +4228,80 @@ PLAYBOOKS = [
     },
 ]
 
-WEBHOOKS_ENDPOINTS: list = []
+WEBHOOKS_ENDPOINTS = []
 
-SECRETS: list = []
+SECRETS = []
 
 STATUS_PAGES = [
+    {
+        "allow_email_subscribers": True,
+        "allow_sms_subscribers": True,
+        "allow_rss_atom_feeds": False,
+        "saml_sp_entity_id": "https://rootly.com/teams/3444/status-pages/b06b4475-9204-4991-854b-e5ea7c27888f/saml/metadata",
+        "saml_authentication_available": False,
+        "section_order": ["maintenance", "system_status", "incidents"],
+        "cname_records": {},
+        "title": "Internal System Status Page",
+        "public_title": "[Internal] Platform System Status | Status",
+        "description": "This is the internal systems status page.",
+        "header_color": "#FAEBB7",
+        "footer_color": "#FAEBB7",
+        "allow_search_engine_index": True,
+        "show_uptime": True,
+        "show_uptime_last_days": 60,
+        "success_message": "All Systems Operational",
+        "failure_message": "Something's not quite right",
+        "authentication_method": "none",
+        "authentication_enabled": False,
+        "authentication_password": "[REDACTED]",
+        "saml_name_identifier_format": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+        "time_zone": "Etc/UTC",
+        "public": False,
+        "service_ids": [
+            "5044e739-2210-4c5c-b591-11987cd41a70",
+            "fba23a29-fef9-4d8a-a416-9b808dec8db2",
+        ],
+        "functionality_ids": [],
+        "enabled": True,
+    },
+    {
+        "allow_email_subscribers": True,
+        "allow_sms_subscribers": True,
+        "allow_rss_atom_feeds": True,
+        "saml_sp_entity_id": "https://status.learn.mit.edu/saml/metadata",
+        "saml_authentication_available": False,
+        "section_order": ["maintenance", "system_status", "incidents"],
+        "cname_records": {
+            "status.learn.mit.edu": "77283be4dbe3dfe9f611adfe9d948adc1102ea91.external-sp.rootly.com"
+        },
+        "title": "MIT Learn Status Page",
+        "public_title": "MIT Learn | Status",
+        "description": "Status page for MIT Learn.",
+        "header_color": "#D7E7F5",
+        "footer_color": "#D7E7F5",
+        "allow_search_engine_index": True,
+        "show_uptime": True,
+        "show_uptime_last_days": 60,
+        "success_message": "All Systems Operational",
+        "failure_message": "Some services negatively impacted",
+        "authentication_method": "none",
+        "authentication_enabled": False,
+        "authentication_password": "[REDACTED]",
+        "saml_idp_sso_service_url": "",
+        "saml_idp_slo_service_url": "",
+        "saml_name_identifier_format": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+        "website_url": "https://learn.mit.edu",
+        "time_zone": "Etc/UTC",
+        "public": True,
+        "service_ids": [],
+        "functionality_ids": [
+            "85575e46-2501-414f-bb54-fad0e6e8396e",
+            "1bcb6f37-9454-4d8b-a78a-98e0531a425e",
+            "e1a6846e-c515-4ae3-9570-aebbc863341b",
+            "81796a13-eca1-4f96-ae29-3414cc8586d4",
+        ],
+        "enabled": True,
+    },
     {
         "allow_email_subscribers": True,
         "allow_sms_subscribers": True,
@@ -4256,66 +4341,9 @@ STATUS_PAGES = [
         "functionality_ids": [],
         "enabled": True,
     },
-    {
-        "allow_email_subscribers": True,
-        "allow_sms_subscribers": True,
-        "allow_rss_atom_feeds": True,
-        "saml_sp_entity_id": "https://rootly.com/teams/3444/status-pages/cb79d590-704d-4fdd-98b7-10a399519a01/saml/metadata",
-        "saml_authentication_available": False,
-        "section_order": ["maintenance", "system_status", "incidents"],
-        "cname_records": {},
-        "title": "Internal System Status Page",
-        "public_title": "[Internal] Platform System Status | Status",
-        "description": "This is the internal systems status page.",
-        "header_color": "#FAEBB7",
-        "footer_color": "#FAEBB7",
-        "allow_search_engine_index": True,
-        "show_uptime": True,
-        "show_uptime_last_days": 60,
-        "success_message": "All Systems Operational",
-        "failure_message": "Something's not quite right",
-        "authentication_method": "none",
-        "authentication_enabled": False,
-        "authentication_password": "[REDACTED]",
-        "saml_name_identifier_format": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
-        "time_zone": "Etc/UTC",
-        "public": False,
-        "service_ids": [
-            "5044e739-2210-4c5c-b591-11987cd41a70",
-            "fba23a29-fef9-4d8a-a416-9b808dec8db2",
-        ],
-        "functionality_ids": [],
-        "enabled": True,
-    },
-    {
-        "title": "MIT Learn Status Page",
-        "public_title": "MIT Learn | Status",
-        "description": "Status page for MIT Learn.",
-        "public_description": "MIT Learn status page.",
-        "header_color": "#D7E7F5",
-        "footer_color": "#D7E7F5",
-        "allow_search_engine_index": True,
-        "show_uptime": True,
-        "show_uptime_last_days": 60,
-        "success_message": "All Systems Operational",
-        "failure_message": "Some services negatively impacted",
-        "authentication_method": "none",
-        "authentication_enabled": False,
-        "website_url": "https://learn.mit.edu",
-        "time_zone": "Etc/UTC",
-        "public": True,
-        "service_ids": [],
-        "functionality_names": [
-            "MIT Learn",
-            "E-Commerce/Enrollment",
-            "AskTim",
-            "Courseware",
-        ],
-        "enabled": True,
-    },
 ]
 
-STATUS_PAGE_TEMPLATES: list = []
+STATUS_PAGE_TEMPLATES = []
 
 FORM_FIELDS = [
     {
@@ -4721,7 +4749,7 @@ FORM_FIELDS = [
     },
 ]
 
-CUSTOM_FORMS: list = []
+CUSTOM_FORMS = []
 
 INCIDENT_PERMISSION_SETS = [
     {
