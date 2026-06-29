@@ -66,7 +66,11 @@ from rootly_sdk.api.schedule_rotations import list_schedule_rotations
 from rootly_sdk.api.schedules import list_schedules
 from rootly_sdk.api.secrets import list_secrets
 from rootly_sdk.api.services import create_service, list_services, update_service
-from rootly_sdk.api.severities import list_severities
+from rootly_sdk.api.severities import (
+    create_severity,
+    list_severities,
+    update_severity,
+)
 from rootly_sdk.api.status_page_templates import (
     create_status_page_template,
     list_status_page_templates,
@@ -90,6 +94,7 @@ from rootly_sdk.models.new_escalation_policy import NewEscalationPolicy
 from rootly_sdk.models.new_functionality import NewFunctionality
 from rootly_sdk.models.new_role import NewRole
 from rootly_sdk.models.new_service import NewService
+from rootly_sdk.models.new_severity import NewSeverity
 from rootly_sdk.models.new_status_page import NewStatusPage
 from rootly_sdk.models.new_status_page_template import NewStatusPageTemplate
 from rootly_sdk.models.new_team import NewTeam
@@ -101,6 +106,7 @@ from rootly_sdk.models.update_escalation_policy import UpdateEscalationPolicy
 from rootly_sdk.models.update_functionality import UpdateFunctionality
 from rootly_sdk.models.update_role import UpdateRole
 from rootly_sdk.models.update_service import UpdateService
+from rootly_sdk.models.update_severity import UpdateSeverity
 from rootly_sdk.models.update_status_page import UpdateStatusPage
 from rootly_sdk.models.update_status_page_template import UpdateStatusPageTemplate
 from rootly_sdk.models.update_team import UpdateTeam
@@ -1107,6 +1113,17 @@ def resolve_functionality_names(
     return functionality_ids
 
 
+def find_existing_severity(client: AuthenticatedClient, name: str) -> str | None:
+    """Find a severity by name and return its id, or None if not found."""
+    response = list_severities.sync_detailed(client=client, filtername=name)
+    if response.status_code != 200 or response.parsed is None:
+        return None
+    for s in response.parsed.data:
+        if s.attributes.name == name:
+            return s.id
+    return None
+
+
 def find_existing_status_page(client: AuthenticatedClient, title: str) -> str | None:
     """Find a status page by title and return its id, or None if not found."""
     return _find_existing_by_attribute(client, list_status_pages, "title", title)
@@ -1401,6 +1418,49 @@ def ensure_escalation_policy(client: AuthenticatedClient, policy_dict: dict) -> 
                 print(f"  Error: {response.parsed}")
 
 
+def ensure_severity(client: AuthenticatedClient, severity_dict: dict) -> None:
+    """Create a severity if it doesn't exist, or update it if it does."""
+    name = severity_dict["name"]
+    existing_id = find_existing_severity(client, name)
+
+    if existing_id is not None:
+        payload = UpdateSeverity.from_dict(
+            {
+                "data": {
+                    "type": "severities",
+                    "attributes": severity_dict,
+                }
+            }
+        )
+        response = update_severity.sync_detailed(
+            existing_id, client=client, body=payload
+        )
+        if response.status_code == 200:
+            print(f"Updated severity: {name} (id: {existing_id})")
+        else:
+            print(f"Failed to update severity '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+    else:
+        payload = NewSeverity.from_dict(
+            {
+                "data": {
+                    "type": "severities",
+                    "attributes": severity_dict,
+                }
+            }
+        )
+        response = create_severity.sync_detailed(client=client, body=payload)
+        if response.status_code == 201:
+            print(
+                f"Created severity: {name} (id: {_created_resource_id(response.parsed)})"
+            )
+        else:
+            print(f"Failed to create severity '{name}': {response.status_code}")
+            if response.parsed:
+                print(f"  Error: {response.parsed}")
+
+
 def ensure_functionality(client: AuthenticatedClient, functionality_dict: dict) -> None:
     """Create a functionality if it doesn't exist, or update it if it does."""
     name = functionality_dict["name"]
@@ -1562,7 +1622,7 @@ def ensure_status_page_template(
 
 def load_data_file(
     path: str,
-) -> tuple[list, list, list, list, list, list, list, list, list]:
+) -> tuple[list, list, list, list, list, list, list, list, list, list]:
     """Dynamically load all managed resource lists from a Python data file."""
     abs_path = os.path.abspath(path)
     spec = importlib.util.spec_from_file_location("_rootly_data", abs_path)
@@ -1572,6 +1632,7 @@ def load_data_file(
     spec.loader.exec_module(module)
     teams = getattr(module, "TEAMS", [])
     functionalities = getattr(module, "FUNCTIONALITIES", [])
+    severities = getattr(module, "SEVERITIES", [])
     status_pages = getattr(module, "STATUS_PAGES", [])
     status_page_templates = getattr(module, "STATUS_PAGE_TEMPLATES", [])
     alert_sources = getattr(module, "ALERT_SOURCES", [])
@@ -1582,6 +1643,7 @@ def load_data_file(
         module.ROLES,
         teams,
         functionalities,
+        severities,
         status_pages,
         status_page_templates,
         alert_sources,
@@ -1597,6 +1659,7 @@ def run_import(client: AuthenticatedClient, path: str) -> None:
         roles,
         teams,
         functionalities,
+        severities,
         status_pages,
         status_page_templates,
         alert_sources,
@@ -1605,7 +1668,8 @@ def run_import(client: AuthenticatedClient, path: str) -> None:
     ) = load_data_file(path)
     print(
         f"Loaded {len(services)} services, {len(roles)} roles, {len(teams)} teams, "
-        f"{len(functionalities)} functionalities, {len(status_pages)} status pages, "
+        f"{len(functionalities)} functionalities, {len(severities)} severities, "
+        f"{len(status_pages)} status pages, "
         f"{len(status_page_templates)} status page templates, {len(alert_sources)} alert sources, "
         f"{len(alert_routes)} alert routes, and {len(escalation_policies)} escalation policies from {path}"
     )
@@ -1625,6 +1689,10 @@ def run_import(client: AuthenticatedClient, path: str) -> None:
     print("\nEnsuring functionalities...")
     for functionality_dict in functionalities:
         ensure_functionality(client, functionality_dict)
+
+    print("\nEnsuring severities...")
+    for severity_dict in severities:
+        ensure_severity(client, severity_dict)
 
     print("\nEnsuring status pages...")
     for status_page_dict in status_pages:
@@ -1681,7 +1749,7 @@ _PULUMI_TYPE = {
     "playbook_task": "rootly:index/playbookTask:PlaybookTask",
     # --- integrations ---
     "webhooks_endpoint": "rootly:index/webhooksEndpoint:WebhooksEndpoint",
-    "secret": "rootly:index/secret:Secret",
+    "secret": "rootly:index/secret:Secret",  # pragma: allowlist secret
     # --- status pages ---
     "status_page": "rootly:index/statusPage:StatusPage",
     "status_page_template": "rootly:index/statusPageTemplate:StatusPageTemplate",
