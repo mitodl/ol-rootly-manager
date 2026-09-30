@@ -14,6 +14,16 @@ A Python CLI tool for managing Rootly resources (services, functionalities, stat
 export ROOTLY_API_KEY=your_api_key_here
 ```
 
+## Development
+
+Code checks run with [prek](https://prek.j178.dev/), which reads `.pre-commit-config.yaml`. The `prek` check runs the same hooks on every pull request. When the hooks' own fixes are enough to make every hook pass, [autofix.ci](https://autofix.ci/) pushes them to the pull request as one commit. It refuses fixes to files under `.github/`, so fix those locally.
+
+```bash
+uv sync                     # installs prek from uv.lock
+uv run prek install -f      # replaces a pre-commit git hook, if one is installed
+uv run prek run --all-files
+```
+
 ## Commands
 
 ### `--report`
